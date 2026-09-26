@@ -2,10 +2,39 @@
 'use server'
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import prisma from "../prisma/prisma";
 import { getSessionUser } from "../auth";
 import { getPropertyOwner, getTroopConfigurations } from "../data";
 import { calcularDistancia, calcularDuracionViaje, calcularVelocidadFlota } from "../formulas/mission-formulas";
+
+const coordsSchema = z.object({
+  ciudad: z.number().int().min(1).max(100),
+  barrio: z.number().int().min(1).max(100),
+  edificio: z.number().int().min(1).max(225),
+});
+
+/**
+ * Dueño de una propiedad, para mostrar el objetivo en el formulario de misión.
+ *
+ * Vivir en `data.ts` convertía esta lectura en un endpoint público sin sesión
+ * (ver el `"use server"` de ese modulo). Acá exige autenticación y valida la
+ * entrada, y solo devuelve los dos campos que la vista necesita.
+ */
+export async function consultarDueñoDePropiedad(input: unknown) {
+  const user = await getSessionUser();
+  if (!user) {
+    return { error: "Usuario no autenticado." };
+  }
+
+  const parsed = coordsSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: "Coordenadas invalidas." };
+  }
+
+  const owner = await getPropertyOwner(parsed.data);
+  return { owner };
+}
 
 interface MissionInput {
     origenPropiedadId: string;

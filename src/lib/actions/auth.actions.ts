@@ -2,7 +2,7 @@
 'use server';
 
 import prisma from "../prisma/prisma";
-import { login } from "../auth";
+import { createSession } from "../auth";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
@@ -91,10 +91,15 @@ export async function registerUser(input: RegisterUserInput) {
             }
         });
 
-        await login(newUser.id, newUser.username);
+        await createSession(newUser.id, newUser.username);
 
         revalidatePath('/');
-        return { success: true, user: newUser };
+        // Solo datos publicos: devolver `newUser` entero Filtraba el hash de
+        // la contrasena al cliente.
+        return {
+            success: true,
+            user: { id: newUser.id, username: newUser.username, name: newUser.name },
+        };
 
     } catch (error) {
         console.error('Error durante el registro:', error);

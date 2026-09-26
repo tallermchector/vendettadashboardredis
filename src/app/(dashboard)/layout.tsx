@@ -39,7 +39,7 @@ export default async function DashboardLayout({
     verificarYFinalizarMisiones(sessionUser),
     verificarYFinalizarEntrenamientos(sessionUser),
   ]);
-  
+
   // Combina los resultados. Si no hubo cambios, usa la versión anterior.
   let combinedUser = { ...sessionUser, ...userAfterConstructionCheck, ...userAfterRecruitmentCheck, ...userAfterMissionCheck, ...userAfterTrainingCheck };
 

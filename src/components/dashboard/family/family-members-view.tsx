@@ -4,7 +4,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { FullFamily } from "@/lib/data";
-import { FamilyRole } from "@prisma/client";
+import { FamilyRole } from "@/types/enums";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";

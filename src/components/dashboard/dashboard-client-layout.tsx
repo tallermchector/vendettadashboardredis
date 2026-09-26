@@ -17,7 +17,7 @@ import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { LogOut, Swords } from "lucide-react"
 import type { UserWithProgress } from "@/lib/data"
-import { logout } from "@/lib/auth"
+import { logout } from "@/lib/actions/session.actions"
 import { useRouter } from "next/navigation"
 
 export function DashboardClientLayout({

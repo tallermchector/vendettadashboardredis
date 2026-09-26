@@ -6,12 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { getPropertyOwner, UserWithProgress } from '@/lib/data';
+import type { UserWithProgress } from '@/lib/data';
 import { debounce } from 'lodash';
 import { Loader2, User, UserX, Clock } from 'lucide-react';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { enviarMision } from '@/lib/actions/mission.actions';
+import { enviarMision, consultarDueñoDePropiedad } from '@/lib/actions/mission.actions';
 import { useToast } from '@/hooks/use-toast';
 import { useProperty } from '@/contexts/property-context';
 import type { ConfiguracionTropa } from '@prisma/client';
@@ -125,8 +125,10 @@ export function MissionsView({ user, troopConfigs }: { user: UserWithProgress, t
                 setIsLoadingTarget(false);
                 return;
             };
-            const owner = await getPropertyOwner({ ciudad, barrio, edificio });
-            setTargetOwner(owner);
+            // `targetOwner` es triestado: undefined = sin buscar todavia,
+            // null = buscado y sin dueno. No colapsarlos.
+            const result = await consultarDueñoDePropiedad({ ciudad, barrio, edificio });
+            setTargetOwner('error' in result ? undefined : result.owner);
             setIsLoadingTarget(false);
         }, 500),
         []

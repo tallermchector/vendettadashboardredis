@@ -79,7 +79,12 @@ async function actualizarRecursosPropiedad(propiedad: FullPropiedad): Promise<Fu
     const nuevosDolares = Math.min(capacidad.dolares, propiedad.dolares + dolaresGenerados);
 
     try {
-        const propiedadActualizada = await prisma.propiedad.update({
+        // Update liviano: solo se pisan los 4 recursos y el reloj del tick.
+        // Antes este update re-traia `habitaciones -> configuracion ->
+        // requirements`, `TropaUsuario`, `colaConstruccion` y
+        // `colaReclutamiento`, y ninguna de esas relaciones la modifica esta
+        // funcion: costaba ~2s por propiedad en cada navegacion del dashboard.
+        await prisma.propiedad.update({
             where: { id: propiedad.id },
             data: {
                 armas: nuevasArmas,
@@ -88,14 +93,16 @@ async function actualizarRecursosPropiedad(propiedad: FullPropiedad): Promise<Fu
                 dolares: nuevosDolares,
                 ultimaActualizacion: ahora,
             },
-            include: { 
-                habitaciones: { include: { configuracion: { include: { requirements: true } } } },
-                colaConstruccion: { orderBy: { createdAt: 'asc' } }, 
-                colaReclutamiento: { include: { tropaConfig: true } },
-                TropaUsuario: { include: { configuracion: true } }
-            }
         });
-        return propiedadActualizada as FullPropiedad;
+
+        return {
+            ...propiedad,
+            armas: nuevasArmas,
+            municion: nuevaMunicion,
+            alcohol: nuevoAlcohol,
+            dolares: nuevosDolares,
+            ultimaActualizacion: ahora,
+        } as FullPropiedad;
     } catch (error) {
         console.error(`Error actualizando recursos para propiedad ${propiedad.id}:`, error);
         return propiedad;

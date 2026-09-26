@@ -1,6 +1,22 @@
 
-
-"use server"
+/**
+ * Data Access Layer. SOLO SERVIDOR.
+ *
+ * Esta cabecera NO lleva la directiva "use server" a proposito. Con ella,
+ * Next.js registraba las ~19 funciones exportadas de este archivo como
+ * endpoints RPC publicos: cualquiera podia invocarlas sin sesion y sin
+ * validacion, y `getUserByUsername` ademas devolvia el hash de la contrasena.
+ *
+ * Sin la directiva, estas funciones son alcance de servidor: los Server
+ * Actions las pueden seguir llamando directamente, pero el navegador no.
+ *
+ * Si un componente cliente necesita una lectura de aca, hay dos caminos:
+ * resolverla en el Server Component padre y pasarla por props, o exponer una
+ * accion autenticada en src/lib/actions/ (ver `consultarDueñoDePropiedad`).
+ * Importar un VALOR de runtime desde un 'use client' rompe el build a proposito.
+ *
+ * Los imports de tipos desde el cliente son seguros: se borran al compilar.
+ */
 
 import { User, HabitacionUsuario, EntrenamientoUsuario, TropaUsuario, ConfiguracionHabitacion, ConfiguracionEntrenamiento, ColaConstruccion, ColaReclutamiento, ConfiguracionTropa, Propiedad, PuntuacionUsuario, ColaMisiones, Family, FamilyMember, TrainingRequirement, RoomRequirement, TropaBonusContrincante, Message, MessageCategory, ColaEntrenamiento, FamilyInvitation, InvitationStatus, InvitationType, Prisma } from '@prisma/client'
 import { cache } from 'react';
@@ -578,21 +594,16 @@ export const getInvitationsForUser = cache(async (userId: string): Promise<FullF
 });
 
 
-export async function getUserByUsername(username: string): Promise<UserWithProgress | null> {
-    try {
-        const user = await prisma.user.findUnique({
-            where: { username },
-            include: userInclude
-        });
-        return user as UserWithProgress | null;
-    } catch (error) {
-        console.error(`Error fetching user ${username}:`, error);
-        return null;
-    }
-}
-
-
-export async function getUserWithProgressByUsername(username: string): Promise<UserWithProgress | null> {
+/**
+ * Fetch memoizado del usuario con todo su progreso.
+ *
+ * Esta consulta es la mas pesada del proyecto (include anidado de
+ * propiedades -> habitaciones -> requirements, tropas, colas, misiones,
+ * family's y conteo de mensajes). Sin `cache()` se ejecuta una vez por cada
+ * consumidor dentro del mismo request: el layout del dashboard y la pagina
+ * la piden ambos, lo que duplicaba ~2.6s de render por navegacion.
+ */
+export const getUserWithProgressByUsername = cache(async (username: string): Promise<UserWithProgress | null> => {
     try {
         const user = await prisma.user.findUnique({
             where: { username },
@@ -603,7 +614,7 @@ export async function getUserWithProgressByUsername(username: string): Promise<U
         console.error(`Error fetching user ${username} with progress:`, error);
         return null;
     }
-}
+});
 
 export type ActivityType = 'CONSTRUCCION' | 'RECLUTAMIENTO' | 'ATAQUE' | 'ENTRENAMIENTO' | 'SISTEMA';
 export type ActivityStatus = 'COMPLETADO' | 'EN_CURSO' | 'DESPLEGADO';

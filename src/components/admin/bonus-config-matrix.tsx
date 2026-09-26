@@ -8,7 +8,7 @@ import { Input } from "../ui/input";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { saveTroopBonusConfig } from "@/lib/actions/admin.actions";
-import { ConfiguracionTropa, TropaBonusContrincante } from "@prisma/client";
+import type { ConfiguracionTropa, TropaBonusContrincante } from "@prisma/client";
 import { ScrollArea } from "../ui/scroll-area";
 import { cn } from "@/lib/utils";
 

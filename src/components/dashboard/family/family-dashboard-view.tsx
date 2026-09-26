@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { FullFamily, UserWithProgress } from "@/lib/data";
-import { FamilyRole } from "@prisma/client";
+import { FamilyRole } from "@/types/enums";
 import { Crown, Shield, User, Users, Loader2, UserPlus, MailPlus, HandMetal } from "lucide-react";
 import {
     AlertDialog,

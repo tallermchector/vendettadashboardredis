@@ -5,7 +5,7 @@ import { useState } from "react";
 import { MessageList } from "./message-list";
 import { MessageFolderList } from "./message-folder-list";
 import { FullMessage, UserWithProgress } from "@/lib/data";
-import { MessageCategory } from "@prisma/client";
+import { MessageCategory } from "@/types/enums";
 import { ComposeMessage } from "./compose-message";
 
 interface MessagesViewProps {

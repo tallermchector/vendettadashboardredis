@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { RoomConfigForm } from "./forms/room-config-form";
 import { deleteRoomConfig } from "@/lib/actions/admin.actions";
 import { DeleteConfigButton } from "./delete-config-button";
-import { ConfiguracionHabitacion } from "@prisma/client";
+import type { ConfiguracionHabitacion } from "@prisma/client";
 
 interface RoomConfigTableProps {
     initialData: (ConfiguracionHabitacion & { requirements: { requiredRoomId: string; requiredLevel: number }[] })[];

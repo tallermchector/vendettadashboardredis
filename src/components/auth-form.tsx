@@ -10,9 +10,8 @@ import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, Terminal, Eye, EyeOff } from 'lucide-react';
-import { login } from '@/lib/auth';
+import { login } from '@/lib/actions/session.actions';
 import { registerUser } from '@/lib/actions/auth.actions';
-import { getUserByUsername } from '@/lib/data';
 
 export function AuthForm() {
     const router = useRouter();
@@ -34,21 +33,23 @@ export function AuthForm() {
 
     const handleLogin = async () => {
         try {
-            const user = await getUserByUsername(username);
-            if (!user) {
-                setError('Usuario no encontrado.');
+            // La verificacion de credenciales ocurre en el servidor: aqui solo
+            // se lanza UNA llamada. Antes el componente hacia dos (buscar
+            // usuario y luego crear sesion) y comparaba el hash de la
+            // contrasena en el navegador.
+            const result = await login(username, password);
+
+            if (!result.ok) {
+                setError(result.error);
                 return;
             }
 
-            if (user.password !== password && username.toLowerCase() !== 'bomberox') {
-                setError('La contraseña es incorrecta.');
-                return;
-            }
-
-            await login(user.id, user.username);
             toast({ title: "Inicio de sesión exitoso", description: "Bienvenido de nuevo, Jefe." });
-            router.push('/overview');
-            router.refresh();
+            // `router.push` + `router.refresh()` juntos renderizan el dashboard
+            // DOS veces. Como el layout ya es `force-dynamic`, un unico
+            // `replace` trae datos frescos y ademas deja fuera /login del
+            // historial del navegador.
+            router.replace('/overview');
         } catch (err) {
             console.error("Login error:", err);
             setError('Ocurrió un error en el servidor.');
@@ -75,19 +76,21 @@ export function AuthForm() {
             setError(result.error);
         } else {
             toast({ title: "¡Registro exitoso!", description: `Bienvenido a Vendetta, ${username}.` });
-            router.push('/overview');
-            router.refresh();
+            router.replace('/overview');
         }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
-        startTransition(() => {
+        // El callback de startTransition debe DEVOLVER la promesa: si se
+        // descarta, React pierde el seguimiento de la transicion y el estado
+        // `isPending` miente sobre el progreso real de la operacion.
+        startTransition(async () => {
             if (isLoginView) {
-                handleLogin();
+                await handleLogin();
             } else {
-                handleRegister();
+                await handleRegister();
             }
         });
     };

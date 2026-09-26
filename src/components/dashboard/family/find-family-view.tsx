@@ -12,7 +12,7 @@ import { Check, Hourglass, Loader2, Send, X, ArrowLeft } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { InvitationStatus, InvitationType } from "@prisma/client";
+import { InvitationType } from "@/types/enums";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";

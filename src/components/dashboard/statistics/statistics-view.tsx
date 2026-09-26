@@ -1,7 +1,7 @@
 
 'use client';
 
-import { ConfiguracionHabitacion, ConfiguracionTropa, ConfiguracionEntrenamiento, HabitacionUsuario, EntrenamientoUsuario } from "@prisma/client";
+import type { ConfiguracionHabitacion, ConfiguracionTropa, ConfiguracionEntrenamiento, HabitacionUsuario, EntrenamientoUsuario } from "@prisma/client";
 import { UserWithProgress } from "@/lib/data";
 import { StatTableCard } from "./stat-table-card";
 
