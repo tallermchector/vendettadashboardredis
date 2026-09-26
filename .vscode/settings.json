@@ -1,4 +1,20 @@
 {
     "IDX.aI.enableInlineCompletion": true,
-    "IDX.aI.enableCodebaseIndexing": true
+    "IDX.aI.enableCodebaseIndexing": true,
+
+    // Tailwind usa at-rules propios que CSS plano no conoce: @tailwind, @apply,
+    // @layer, @config. El validador nativo los marca como desconocidos y
+    // subraya todo globals.css en rojo.
+    //
+    // Recomendado por la doc oficial de Tailwind (https://tailwindcss.com/docs/editor-setup):
+    // "you may need to disable native CSS linting/validations if your editor is
+    //  very strict about the syntax it expects". "css.validate" es la via
+    // soportada por VS Code / Cursor.
+    "css.validate": false,
+
+    // Pinta el swatch del color real de bg-primary, text-foreground, border-ring
+    // dentro de className="", leyendo las variables de globals.css. Requiere la
+    // extension "Tailwind CSS IntelliSense" (ver extensions.json); el soporte de
+    // color para tokens semanticos lo aporta la extension, no VS Code.
+    "editor.colorDecorators": true
 }

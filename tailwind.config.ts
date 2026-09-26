@@ -1,11 +1,19 @@
 import type {Config} from 'tailwindcss';
 
 const config: Config = {
-  darkMode: ['class'],
+  darkMode: 'class',
+  // Directorios que Tailwind escanea para extraer clases. Tailwind v3 PURGA
+  // todo lo que no encuentra aqui: un archivo con classNames fuera de estos
+  // globs pierde sus utilidades del bundle, en silencio y sin error de build.
+  // src/contexts, src/hooks y src/lib hoy no contienen classNames, pero se
+  // listan para que el primer componente que se agregue en ellos no se purgue.
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/contexts/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/hooks/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/lib/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     container: {

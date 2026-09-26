@@ -1,8 +1,13 @@
-
+/* El orden de estas directivas DEFINE la precedencia de las capas en el CSS
+   compilado. Debe ser base -> components -> utilities.
+   Si `utilities` se declara antes que `components`, las utilidades se emiten
+   primero y cualquier clase de `@layer components` (por ejemplo `.main-view`,
+   que hace `@apply flex ... space-y-4 ...`) gana el cascade: `hidden`,
+   `flex-row` o `space-y-6` quedan sin efecto sobre ella. NO reordenar. */
 @tailwind base;
-@tailwind utilities;
 @tailwind components;
- 
+@tailwind utilities;
+
 @layer base {
   :root {
     --background: 240 5% 5%;
@@ -49,6 +54,11 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+
+    /* Indica al navegador el esquema de color para que los controles nativos
+       (inputs, scrollbars, popup del date picker) se pinten oscuros sin
+       necesidad de usar `color-scheme: dark light`. */
+    color-scheme: dark;
   }
 
   /* Light theme remains unchanged as per PRD (dark theme first) */
@@ -80,6 +90,28 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 0 75% 50%;
+
+    /* El tema claro debe redefinir TODAS las variables que consume
+       tailwind.config.ts. Antes faltaban --radius, --sidebar-* y --chart-*,
+       por lo que esos tokens seguian resolviendo al valor oscuro de :root. */
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 222.2 84% 4.9%;
+    --sidebar-primary: 0 75% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 96.1%;
+    --sidebar-accent-foreground: 222.2 47.4% 11.2%;
+    --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-ring: 0 75% 50%;
+
+    --chart-1: 220 70% 45%;
+    --chart-2: 160 60% 38%;
+    --chart-3: 30 80% 48%;
+    --chart-4: 280 65% 52%;
+    --chart-5: 340 75% 50%;
+
+    color-scheme: light;
   }
 }
  
@@ -111,16 +143,7 @@
   ::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--secondary-foreground));
   }
-  
-  .shimmer {
-    @apply relative overflow-hidden;
-  }
-  .shimmer::after {
-    content: '';
-    @apply absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-background/20 to-transparent;
-    animation: shimmer 1.5s infinite;
-  }
-  
+
   h1, h2, h3, h4 {
     @apply font-heading;
   }
@@ -137,7 +160,22 @@
 }
 
 @layer components {
-    .main-view {
-        @apply flex flex-col space-y-4 animate-fade-in;
-    }
+  /* Contenedor raiz de cada vista del dashboard.
+     Al vivir en `@layer components` (emitido ANTES que utilities), cualquier
+     utilidad de `className` gana el cascade. Ej: `className="main-view
+     space-y-6"` produce 1.5rem de gap, no el space-y-4 de aqui. */
+  .main-view {
+    @apply flex flex-col space-y-4 animate-fade-in;
+  }
+
+  /* Barrido de carga para Skeleton. Tambien en components (no en base) para
+     que `relative` / `overflow-hidden` puedan ser sobrescritos por utilidades. */
+  .shimmer {
+    @apply relative overflow-hidden;
+  }
+  .shimmer::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-background/20 to-transparent;
+    animation: shimmer 1.5s infinite;
+  }
 }
