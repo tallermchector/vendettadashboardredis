@@ -3,7 +3,7 @@
   {
     "id": "acuchillador",
     "nombre": "Acuchillador",
-    "urlImagen": "/img/U3K.gif",
+    "urlImagen": "/img/tpr/U3K.webp",
     "descripcion": "Para ser más efectivos en llegar tan rápido como sea posible al objetivo, tus chicos deberían hacer este entrenamiento. Aquí aprenderán a planear rutas, viajar silenciosamente, y aproximarse al objetivo sin ser detectados, para llevar a cabo su trabajo tan efectivamente como sea posible.",
     "costoArmas": 1000,
     "costoMunicion": 200,
@@ -29,7 +29,7 @@
   {
     "id": "asesino",
     "nombre": "Asesino",
-    "urlImagen": "/img/U12K.gif",
+    "urlImagen": "/img/tpr/U12K.webp",
     "descripcion": "Un profesional del combate cercano y el sigilo, el asesino es una herramienta mortal en las manos adecuadas.",
     "costoArmas": 10000,
     "costoMunicion": 15000,
@@ -61,7 +61,7 @@
   {
     "id": "cia",
     "nombre": "Agente de la CIA",
-    "urlImagen": "/img/U8K.gif",
+    "urlImagen": "/img/tpr/U8K.webp",
     "descripcion": "Un agente de élite con entrenamiento gubernamental, altamente efectivo en operaciones ofensivas y defensivas.",
     "costoArmas": 7000,
     "costoMunicion": 10000,
@@ -88,7 +88,7 @@
   {
     "id": "espia",
     "nombre": "Espia",
-    "urlImagen": "/img/U6K.gif",
+    "urlImagen": "/img/tpr/U6K.webp",
     "descripcion": "Maestro del sigilo y la infiltración, el espía puede obtener información valiosa sin ser detectado.",
     "costoArmas": 500,
     "costoMunicion": 200,
@@ -112,7 +112,7 @@
   {
     "id": "fbi",
     "nombre": "Agente del FBI",
-    "urlImagen": "/img/U9K.gif",
+    "urlImagen": "/img/tpr/U9K.webp",
     "descripcion": "Especialista en investigación y tácticas, este agente es perfecto para misiones que requieren precisión y estrategia.",
     "costoArmas": 4000,
     "costoMunicion": 6000,
@@ -138,7 +138,7 @@
   {
     "id": "francotirador",
     "nombre": "Francotirador",
-    "urlImagen": "/img/U11K.gif",
+    "urlImagen": "/img/tpr/U11K.webp",
     "descripcion": "Letal a distancia, el francotirador puede eliminar objetivos clave antes de que el enemigo sepa qué está pasando.",
     "costoArmas": 4000,
     "costoMunicion": 500,
@@ -167,7 +167,7 @@
   {
     "id": "maton",
     "nombre": "Maton",
-    "urlImagen": "/img/U1K.gif",
+    "urlImagen": "/img/tpr/U1K.webp",
     "descripcion": "Para ser más efectivos en llegar tan rápido como sea posible al objetivo, tus chicos deberían hacer este entrenamiento. Aquí aprenderán a planear rutas, viajar silenciosamente, y aproximarse al objetivo sin ser detectados, para llevar a cabo su trabajo tan efectivamente como sea posible.",
     "costoArmas": 200,
     "costoMunicion": 1000,
@@ -187,7 +187,7 @@
   {
     "id": "mercenario",
     "nombre": "Mercenario",
-    "urlImagen": "/img/U14K.gif",
+    "urlImagen": "/img/tpr/U14K.webp",
     "descripcion": "Un soldado de fortuna que lucha por el mejor postor. Equipado con lo mejor, es una fuerza a tener en cuenta en el campo de batalla.",
     "costoArmas": 80000,
     "costoMunicion": 120000,
@@ -225,7 +225,7 @@
   {
     "id": "ninja",
     "nombre": "Ninja",
-    "urlImagen": "/img/U13K.gif",
+    "urlImagen": "/img/tpr/U13K.webp",
     "descripcion": "Un guerrero legendario del lejano oriente, el ninja combina artes marciales mortales con un sigilo sobrenatural.",
     "costoArmas": 2000,
     "costoMunicion": 1000,
@@ -255,7 +255,7 @@
   {
     "id": "ocupacion",
     "nombre": "Tropa de Ocupacion",
-    "urlImagen": "/img/U5K.gif",
+    "urlImagen": "/img/tpr/U5K.webp",
     "descripcion": "Una tropa especializada en tomar y mantener el control de territorios enemigos, esencial para expandir tu imperio.",
     "costoArmas": 20000,
     "costoMunicion": 10000,
@@ -275,7 +275,7 @@
   {
     "id": "pistolero",
     "nombre": "Pistolero",
-    "urlImagen": "/img/U4K.gif",
+    "urlImagen": "/img/tpr/U4K.webp",
     "descripcion": "Para ser más efectivos en llegar tan rápido como sea posible al objetivo, tus chicos deberían hacer este entrenamiento. Aquí aprenderán a planear rutas, viajar silenciosamente, y aproximarse al objetivo sin ser detectados, para llevar a cabo su trabajo tan efectivamente como sea posible.",
     "costoArmas": 2000,
     "costoMunicion": 3000,
@@ -300,7 +300,7 @@
   {
     "id": "porteador",
     "nombre": "Porteador",
-    "urlImagen": "/img/U7K.gif",
+    "urlImagen": "/img/tpr/U7K.webp",
     "descripcion": "Fuerte y resistente, el porteador es clave para transportar grandes cantidades de recursos y botín.",
     "costoArmas": 300,
     "costoMunicion": 100,
@@ -324,7 +324,7 @@
   {
     "id": "portero",
     "nombre": "Portero",
-    "urlImagen": "/img/U2K.gif",
+    "urlImagen": "/img/tpr/U2K.webp",
     "descripcion": "Para ser más efectivos en llegar tan rápido como sea posible al objetivo, tus chicos deberían hacer este entrenamiento. Aquí aprenderán a planear rutas, viajar silenciosamente, y aproximarse al objetivo sin ser detectados, para llevar a cabo su trabajo tan efectivamente como sea posible.",
     "costoArmas": 500,
     "costoMunicion": 800,
@@ -349,7 +349,7 @@
   {
     "id": "transportista",
     "nombre": "Transportista",
-    "urlImagen": "/img/U10K.gif",
+    "urlImagen": "/img/tpr/U10K.webp",
     "descripcion": "Un conductor experto que puede mover grandes cargamentos de forma rápida y segura, evitando a las autoridades.",
     "costoArmas": 1000,
     "costoMunicion": 2000,

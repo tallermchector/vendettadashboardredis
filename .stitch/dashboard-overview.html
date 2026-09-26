@@ -1,0 +1,1181 @@
+﻿<!DOCTYPE html>
+<html lang="es" class="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vendetta 2026 — Dashboard / Visión General (Mockup)</title>
+
+  <!-- ─────────────────────────── TIPOGRAFÍA ─────────────────────────── -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+
+  <!-- ─────────────────────────── TAILWIND CDN ─────────────────────────── -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            // Fondos oscuros (tinta / madera oscura)
+            ink: { DEFAULT: '#0a0806', 1: '#120e0a', 2: '#1f1813', 3: '#2a211a', 4: '#362b22' },
+            // Bordes marrones / madera
+            wood: { DEFAULT: '#3a2e24', light: '#4a3b2e', dark: '#2a211a' },
+            // Paneles beige / pergamino
+            parch: { 50: '#f7f3ea', 100: '#eee6d8', 200: '#e4dbca', 300: '#d5c8b1', 400: '#bfae94' },
+            // Encabezados marrón oscuro
+            umber: { DEFAULT: '#3b2d20', light: '#5a4634', lighter: '#6f5741' },
+            // Acento rojo / crimson
+            crimson: { DEFAULT: '#a02020', light: '#c33', dark: '#701818', deep: '#4a1010' },
+            // Dorado de acento
+            gold: { DEFAULT: '#c9a227', light: '#e3c05a', dim: '#9a7a1c', deep: '#6b5210' },
+          },
+          fontFamily: {
+            sans: ['Roboto', 'system-ui', 'sans-serif'],
+            heading: ['"Bebas Neue"', 'Impact', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+          },
+          boxShadow: {
+            dossier: '0 1px 0 0 rgba(238,230,216,.06), 0 8px 24px -8px rgba(0,0,0,.8)',
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* ── Scrollbars ─────────────────────────────────────────────── */
+    .scroll-wood,
+    .scroll-wood * {
+      scrollbar-width: thin;
+      scrollbar-color: #4a3b2e #0a0806;
+    }
+
+    .scroll-wood::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    .scroll-wood::-webkit-scrollbar-track {
+      background: #0a0806;
+    }
+
+    .scroll-wood::-webkit-scrollbar-thumb {
+      background: #4a3b2e;
+      border-radius: 99px;
+      border: 2px solid #0a0806;
+    }
+
+    .scroll-wood::-webkit-scrollbar-thumb:hover {
+      background: #6b5744;
+    }
+
+    .no-sb::-webkit-scrollbar {
+      display: none;
+    }
+
+    .no-sb {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* ── Textura pergamino ──────────────────────────────────────── */
+    .parchment {
+      background-color: #eee6d8;
+      background-image:
+        radial-gradient(circle at 12% 18%, rgba(120, 96, 60, .13), transparent 42%),
+        radial-gradient(circle at 88% 8%, rgba(120, 96, 60, .10), transparent 38%),
+        radial-gradient(circle at 72% 92%, rgba(120, 96, 60, .12), transparent 46%),
+        repeating-linear-gradient(92deg, rgba(59, 45, 32, .035) 0 2px, transparent 2px 5px);
+    }
+
+    .parchment-2 {
+      background-color: #e4dbca;
+      background-image:
+        radial-gradient(circle at 20% 80%, rgba(120, 96, 60, .14), transparent 45%),
+        repeating-linear-gradient(88deg, rgba(59, 45, 32, .04) 0 2px, transparent 2px 6px);
+    }
+
+    /* Grano de madera para la barra lateral */
+    .woodgrain {
+      background-image:
+        linear-gradient(180deg, rgba(74, 59, 46, .16) 0 1px, transparent 1px 7px),
+        radial-gradient(ellipse at 0% 0%, rgba(120, 90, 60, .10), transparent 55%);
+    }
+
+    /* Viñeta de escritorio */
+    .desk-vignette {
+      background-image: radial-gradient(ellipse at 50% 0%, rgba(201, 162, 39, .05), transparent 60%);
+    }
+
+    /* ── Keyframes ──────────────────────────────────────────────── */
+    @keyframes viewIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    .anim-view {
+      animation: viewIn .35s cubic-bezier(.22, 1, .36, 1) both;
+    }
+
+    /* ── Tooltip CSS puro (sin JS) ──────────────────────────────── */
+    .tip {
+      position: relative;
+    }
+
+    .tip::after {
+      content: attr(data-tip);
+      position: absolute;
+      left: calc(100% + 10px);
+      top: 50%;
+      transform: translateY(-50%) scale(.9);
+      transform-origin: left center;
+      background: #120e0a;
+      color: #eee6d8;
+      border: 1px solid #4a3b2e;
+      padding: 5px 9px;
+      border-radius: 6px;
+      font-size: 11px;
+      line-height: 1;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 90;
+      transition: opacity .13s ease, transform .13s ease;
+      box-shadow: 0 6px 18px -6px rgba(0, 0, 0, .9);
+    }
+
+    .tip:hover::after {
+      opacity: 1;
+      transform: translateY(-50%) scale(1);
+    }
+
+    /* ── Utilidades ─────────────────────────────────────────────── */
+    .line-clamp-1 {
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .line-clamp-3 {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .head {
+      font-family: 'Bebas Neue', Impact, sans-serif;
+      letter-spacing: .04em;
+    }
+
+    .rule {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #3a2e24 18%, #3a2e24 82%, transparent);
+    }
+
+    /* Botón de navegación del sidebar */
+    .navbtn {
+      transition: background-color .14s ease, color .14s ease, border-color .14s ease;
+    }
+
+    .navbtn:hover {
+      background-color: rgba(74, 59, 46, .30);
+    }
+
+    .navbtn.is-active {
+      background-color: rgba(160, 32, 32, .20);
+      box-shadow: inset 3px 0 0 0 #a02020;
+    }
+
+    .navbtn.is-active .nav-ico {
+      color: #e3c05a;
+    }
+
+    .navbtn.is-active .nav-lbl {
+      color: #f7f3ea;
+    }
+
+    /* Puntos de la retícula del mapa decorativo */
+    .grid-dots {
+      background-image: radial-gradient(circle, rgba(201, 162, 39, .10) 1px, transparent 1px);
+      background-size: 22px 22px;
+    }
+  </style>
+</head>
+
+<body class="bg-ink text-parch-100 font-sans antialiased overflow-hidden">
+
+  <!-- ════════════════════════════ SPRITE DE ICONOS ════════════════════════════ -->
+  <svg width="0" height="0" class="absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-swords" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14.5 17.5 3 6V3h3L17.5 14.5" />
+        <path d="m13 19 6-6" />
+        <path d="m16 16 4 4" />
+        <path d="m19 21 2-2" />
+      </symbol>
+      <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </symbol>
+      <symbol id="i-door" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M13 4h3a2 2 0 0 1 2 2v14" />
+        <path d="M2 20h3" />
+        <path d="M5 20V6a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v14" />
+        <path d="M13 12h.01" />
+        <path d="M13 16h.01" />
+        <path d="M16 16h3" />
+        <path d="M16 20h3" />
+      </symbol>
+      <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path
+          d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+      </symbol>
+      <symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <circle cx="12" cy="12" r="6" />
+        <circle cx="12" cy="12" r="2" />
+      </symbol>
+      <symbol id="i-flask" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path
+          d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2" />
+        <path d="M8.5 2h7" />
+        <path d="M7 16h10" />
+      </symbol>
+      <symbol id="i-package" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="m7.5 4.27 9 5.15" />
+        <path
+          d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+        <path d="m3.3 7 8.7 5 8.7-5" />
+        <path d="M12 22V12" />
+      </symbol>
+      <symbol id="i-map" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path
+          d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" />
+        <path d="M15 5.764v15" />
+        <path d="M9 3.236v15" />
+      </symbol>
+      <symbol id="i-clipboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <rect width="8" height="4" x="8" y="2" rx="1" />
+        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+        <path d="M12 11h4" />
+        <path d="M12 16h4" />
+        <path d="M8 11h.01" />
+        <path d="M8 16h.01" />
+      </symbol>
+      <symbol id="i-calculator" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <rect width="16" height="20" x="4" y="2" rx="2" />
+        <line x1="8" x2="16" y1="6" y2="6" />
+        <line x1="8" x2="8" y1="14" y2="14" />
+        <line x1="16" x2="16" y1="14" y2="14" />
+        <line x1="8" x2="8" y1="18" y2="18" />
+        <line x1="16" x2="16" y1="18" y2="18" />
+        <line x1="10" x2="10" y1="14" y2="14" />
+        <line x1="14" x2="14" y1="14" y2="14" />
+        <line x1="10" x2="10" y1="18" y2="18" />
+        <line x1="14" x2="14" y1="18" y2="18" />
+      </symbol>
+      <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M3 12h.01" />
+        <path d="M3 18h.01" />
+        <path d="M3 6h.01" />
+        <path d="M8 12h13" />
+        <path d="M8 18h13" />
+        <path d="M8 6h13" />
+      </symbol>
+      <symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <rect width="20" height="16" x="2" y="4" rx="2" />
+        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+      </symbol>
+      <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+        <path d="M7 16v-5" />
+        <path d="M12 16V8" />
+        <path d="M17 16v-3" />
+      </symbol>
+      <symbol id="i-trophy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+        <path d="M4 22h16" />
+        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+      </symbol>
+      <symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path
+          d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+        <circle cx="12" cy="12" r="3" />
+      </symbol>
+      <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+      </symbol>
+      <symbol id="i-building" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <rect width="16" height="20" x="4" y="2" rx="2" />
+        <path d="M9 22v-4h6v4" />
+        <path d="M8 6h.01" />
+        <path d="M16 6h.01" />
+        <path d="M12 6h.01" />
+        <path d="M12 10h.01" />
+        <path d="M12 14h.01" />
+        <path d="M16 10h.01" />
+        <path d="M16 14h.01" />
+        <path d="M8 10h.01" />
+        <path d="M8 14h.01" />
+      </symbol>
+      <symbol id="i-building2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+        <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+        <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
+        <path d="M10 6h4" />
+        <path d="M10 10h4" />
+        <path d="M10 14h4" />
+        <path d="M10 18h4" />
+      </symbol>
+      <symbol id="i-chevrons" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="m7 15 5 5 5-5" />
+        <path d="m7 9 5-5 5 5" />
+      </symbol>
+      <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6 9 17l-5-5" />
+      </symbol>
+      <symbol id="i-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+        <polyline points="16 17 21 12 16 7" />
+        <line x1="21" x2="9" y1="12" y2="12" />
+      </symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </symbol>
+      <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M10.268 21a2 2 0 0 0 3.464 0" />
+        <path
+          d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
+      </symbol>
+      <symbol id="i-msg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      </symbol>
+      <symbol id="i-userplus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <line x1="19" x2="19" y1="8" y2="14" />
+        <line x1="22" x2="16" y1="11" y2="11" />
+      </symbol>
+      <symbol id="i-chevleft" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6" />
+      </symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
+        <path d="M12 9v4" />
+        <path d="M12 17h.01" />
+      </symbol>
+      <symbol id="i-crosshair" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="22" x2="18" y1="12" y2="12" />
+        <line x1="6" x2="2" y1="12" y2="12" />
+        <line x1="12" x2="12" y1="6" y2="2" />
+        <line x1="12" x2="12" y1="22" y2="18" />
+      </symbol>
+      <symbol id="i-checkcircle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+        <path d="m9 12 2 2 4-4" />
+      </symbol>
+      <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M18 6 6 18" />
+        <path d="m6 6 12 12" />
+      </symbol>
+      <symbol id="i-swap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M8 3 4 7l4 4" />
+        <path d="M4 7h16" />
+        <path d="m16 21 4-4-4-4" />
+        <path d="M20 17H4" />
+      </symbol>
+      <symbol id="i-undo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M9 14 4 9l5-5" />
+        <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11" />
+      </symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <line x1="4" x2="20" y1="6" y2="6" />
+        <line x1="4" x2="20" y1="12" y2="12" />
+        <line x1="4" x2="20" y1="18" y2="18" />
+      </symbol>
+      <symbol id="i-panel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <rect width="18" height="18" x="3" y="3" rx="2" />
+        <path d="M9 3v18" />
+      </symbol>
+      <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+        <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+        <path d="M16 13H8" />
+        <path d="M16 17H8" />
+        <path d="M10 9H8" />
+      </symbol>
+      <symbol id="i-dollar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" x2="12" y1="2" y2="22" />
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+      </symbol>
+      <symbol id="i-wine" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M8 22h8" />
+        <path d="M7 10h10" />
+        <path d="M12 15v7" />
+        <path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z" />
+      </symbol>
+      <symbol id="i-bullet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22a6 6 0 0 0 6-6V6a6 6 0 0 0-12 0v10a6 6 0 0 0 6 6Z" />
+        <path d="M9 8h6" />
+        <path d="M9 12h6" />
+      </symbol>
+      <symbol id="i-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
+        <path
+          d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+      </symbol>
+    </defs>
+  </svg>
+
+  <!-- ════════════════════════════ SHELL ════════════════════════════ -->
+  <div class="flex h-screen w-full overflow-hidden desk-vignette">
+
+    <!-- Overlay móvil -->
+    <div id="scrim"
+      class="fixed inset-0 z-40 bg-ink/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200 lg:hidden">
+    </div>
+
+    <!-- ══════════════ SIDEBAR — w-64 fijo, scroll independiente ══════════════ -->
+    <aside id="sidebar" class="w-64 shrink-0 h-full flex flex-col bg-ink-1 woodgrain border-r-2 border-wood
+           max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-50
+           max-lg:transition-transform max-lg:duration-200 max-lg:-translate-x-full">
+
+      <!-- Header -->
+      <div class="h-16 shrink-0 flex items-center gap-2.5 px-4 border-b border-wood">
+        <div
+          class="w-9 h-9 rounded-md bg-crimson-deep border border-crimson/50 flex items-center justify-center text-gold shadow-inner shrink-0">
+          <svg class="w-5 h-5">
+            <use href="#i-swords" />
+          </svg>
+        </div>
+        <div class="min-w-0">
+          <h1 class="head text-2xl leading-none text-parch-50 tracking-wider">VENDETTA</h1>
+          <p class="text-[9px] uppercase tracking-[.18em] text-gold/70">Consiglio 2026</p>
+        </div>
+      </div>
+
+      <!-- Navegación (scroll propio) -->
+      <nav id="nav-scroll" class="flex-1 min-h-0 overflow-y-auto scroll-wood py-3">
+        <!-- Grupo 1 → selector de propiedad → grupo 2 → grupo 3 -->
+        <div id="nav-a" class="space-y-1"></div>
+
+        <!-- Selector de propiedad (entre Seguridad y Tecnologías) -->
+        <div class="px-2 py-1" id="prop-selector-slot"></div>
+
+        <div id="nav-b" class="space-y-1"></div>
+      </nav>
+
+      <!-- Footer -->
+      <div class="shrink-0 border-t border-wood p-3">
+        <div class="flex items-center gap-2.5">
+          <div
+            class="w-9 h-9 rounded-full bg-gradient-to-br from-umber-light to-umber border-2 border-crimson flex items-center justify-center head text-lg text-parch-100 shrink-0"
+            id="sb-avatar">V</div>
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-bold text-parch-50 truncate leading-tight" id="sb-name">—</p>
+            <p class="text-[10px] text-gold/70 truncate" id="sb-title">—</p>
+          </div>
+          <button id="btn-logout"
+            class="tip shrink-0 w-8 h-8 rounded-md border border-wood bg-ink-2 flex items-center justify-center text-parch-400 hover:text-crimson hover:border-crimson/60 transition"
+            data-tip="Cerrar sesión">
+            <svg class="w-4 h-4">
+              <use href="#i-logout" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ══════════════ CONTENIDO — flex-1 + wrapper max-w-7xl ══════════════ -->
+    <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
+
+      <!-- Header superior — una sola línea: nav · título · recursos · reloj · avatar -->
+      <header class="shrink-0 bg-ink-1/95 backdrop-blur border-b border-wood">
+        <div class="max-w-7xl mx-auto w-full h-14 md:h-16 flex items-center gap-2 md:gap-3 px-4 md:px-6">
+
+          <button id="btn-menu"
+            class="lg:hidden w-9 h-9 rounded-md border border-wood bg-ink-2 flex items-center justify-center text-parch-300 hover:text-gold transition shrink-0">
+            <svg class="w-5 h-5">
+              <use href="#i-menu" />
+            </svg>
+          </button>
+          <button id="btn-collapse"
+            class="hidden lg:flex w-9 h-9 rounded-md border border-wood bg-ink-2 items-center justify-center text-parch-300 hover:text-gold transition shrink-0">
+            <svg class="w-5 h-5">
+              <use href="#i-panel" />
+            </svg>
+          </button>
+
+          <div class="min-w-0 shrink">
+            <p class="hidden sm:block text-[9px] md:text-[10px] uppercase tracking-[.2em] text-gold/60 leading-none">
+              Imperio / Dashboard</p>
+            <h2 class="head text-base md:text-xl lg:text-2xl leading-tight text-parch-50 truncate" id="view-title">
+              Visión General</h2>
+          </div>
+
+          <!-- Barra de recursos — inline, mismo renglón que el título -->
+          <div id="resource-bar"
+            class="flex-1 min-w-0 flex items-center gap-1 md:gap-3 pl-2 md:pl-3 border-l border-wood/60 overflow-x-auto no-sb">
+          </div>
+
+          <div class="hidden sm:flex items-center gap-2 shrink-0">
+            <div class="hidden xl:flex items-center gap-1.5 rounded-md bg-ink-2 border border-wood px-2.5 py-1">
+              <svg class="w-3.5 h-3.5 text-parch-300">
+                <use href="#i-clock" />
+              </svg>
+              <span class="font-mono text-xs text-parch-200 tabular-nums" id="hd-clock">—</span>
+            </div>
+            <div
+              class="w-8 h-8 rounded-full bg-gradient-to-br from-umber-light to-umber border-2 border-crimson flex items-center justify-center head text-base text-parch-100 shrink-0">
+              V</div>
+          </div>
+
+        </div>
+      </header>
+
+      <!-- Contenido con scroll -->
+      <div class="flex-1 min-h-0 overflow-y-auto scroll-wood">
+        <div class="max-w-7xl mx-auto w-full px-4 py-4 md:px-6 md:py-5">
+
+          <!-- ░░░ VISTA OVERVIEW ░░░ -->
+          <section id="view-overview" class="anim-view space-y-4">
+
+            <!-- ── Visión General del Imperio: grid-cols-1 lg:grid-cols-3 ── -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+              <!-- Jugador -->
+              <div class="lg:col-span-1">
+                <div class="h-full rounded-lg border-2 border-wood bg-ink-2 shadow-dossier overflow-hidden">
+                  <div class="h-1 bg-gradient-to-r from-crimson via-crimson/40 to-transparent"></div>
+                  <div class="p-4 flex items-center gap-4">
+                    <div
+                      class="w-16 h-16 rounded-full bg-gradient-to-br from-umber-light to-umber border-2 border-crimson flex items-center justify-center head text-3xl text-parch-50 shrink-0">
+                      V</div>
+                    <div class="min-w-0">
+                      <p class="text-[11px] uppercase tracking-[.18em] text-gold/70">Jugador</p>
+                      <p class="head text-2xl text-parch-50 truncate" id="emp-player">—</p>
+                      <p class="text-[11px] text-parch-400 truncate" id="emp-player-sub">—</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Propiedad principal -->
+              <div class="lg:col-span-1 lg:row-span-1">
+                <div id="emp-property"
+                  class="relative h-full min-h-[200px] rounded-lg border-2 border-wood overflow-hidden shadow-dossier">
+                  <div class="absolute inset-0 grid-dots"></div>
+                  <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-transparent"></div>
+                  <div class="absolute bottom-0 left-0 right-0 p-4">
+                    <p class="head text-xl text-parch-50">Visión General — Propiedad Principal</p>
+                    <p class="font-mono text-xs text-gold/90" id="emp-coords">—</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Familia + acciones -->
+              <div class="lg:col-span-1">
+                <div class="relative h-full min-h-[200px] rounded-lg border-2 border-wood bg-ink-2 shadow-dossier">
+                  <div class="h-1 bg-gradient-to-r from-gold via-gold/30 to-transparent"></div>
+
+                  <!-- ActionIcons (superior derecha) -->
+                  <div class="absolute top-3 right-3 flex flex-col items-center gap-2">
+                    <button
+                      class="tip w-9 h-9 rounded-md border border-white/15 bg-ink-1/60 flex items-center justify-center text-parch-100 hover:bg-crimson/30 hover:border-crimson transition relative"
+                      data-tip="Notificaciones del Sistema" data-act="bell">
+                      <svg class="w-4 h-4">
+                        <use href="#i-bell" />
+                      </svg>
+                    </button>
+                    <button
+                      class="tip w-9 h-9 rounded-md border border-white/15 bg-ink-1/60 flex items-center justify-center text-parch-100 hover:bg-crimson/30 hover:border-crimson transition relative"
+                      data-tip="Mensajes" data-act="msg">
+                      <svg class="w-4 h-4">
+                        <use href="#i-msg" />
+                      </svg>
+                      <span
+                        class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-crimson text-[9px] font-bold text-parch-50 flex items-center justify-center border border-crimson-light">7</span>
+                    </button>
+                    <button
+                      class="tip w-9 h-9 rounded-md border border-white/15 bg-ink-1/60 flex items-center justify-center text-parch-100 hover:bg-crimson/30 hover:border-crimson transition"
+                      data-tip="Familia" data-act="family">
+                      <svg class="w-4 h-4">
+                        <use href="#i-users" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div class="p-4 h-full flex flex-col items-center justify-center gap-2 pt-16">
+                    <div
+                      class="w-24 h-24 rounded-full bg-gradient-to-br from-gold-dim to-umber border-2 border-gold flex items-center justify-center head text-4xl text-parch-50 shrink-0"
+                      id="emp-family-avatar">C</div>
+                    <p class="text-[11px] uppercase tracking-[.18em] text-gold/70">Familia</p>
+                    <p class="head text-2xl text-parch-50 text-center leading-none" id="emp-family">—</p>
+                    <span class="font-mono text-[10px] px-2 py-0.5 rounded border border-wood bg-ink-1 text-gold"
+                      id="emp-family-tag">—</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Colas de estado ── -->
+            <div id="queue-block" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+            <!-- ── Barra inferior de estadísticas ── -->
+            <div class="rounded-lg border-2 border-wood bg-ink-2 shadow-dossier">
+              <div class="h-1 bg-gradient-to-r from-crimson via-gold/50 to-transparent"></div>
+              <div class="p-2 sm:p-3 flex items-center gap-x-1 sm:gap-x-4" id="stats-bar"></div>
+            </div>
+          </section>
+
+          <!-- ░░░ VISTAS PLACEHOLDER ░░░ -->
+          <section id="view-placeholder" class="anim-view hidden">
+            <div class="rounded-lg border-2 border-wood bg-ink-2 shadow-dossier overflow-hidden">
+              <div class="h-1 bg-gradient-to-r from-crimson via-gold/50 to-transparent"></div>
+              <div class="p-8 text-center">
+                <div
+                  class="w-16 h-16 mx-auto rounded-lg bg-ink-1 border border-wood flex items-center justify-center text-gold mb-4">
+                  <svg class="w-7 h-7">
+                    <use href="#i-file" />
+                  </svg>
+                </div>
+                <p class="head text-3xl text-parch-50" id="ph-title">—</p>
+                <p class="text-sm text-parch-400 mt-1 max-w-md mx-auto" id="ph-desc">
+                  Vista no implementada en este mockup. El alcance del archivo es el shell del dashboard
+                  (layout global + barra lateral + barra de recursos) y la vista <span class="text-gold">Visión
+                    General</span> completa.
+                </p>
+                <button onclick="go('overview')"
+                  class="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-md bg-crimson hover:bg-crimson-light text-parch-50 text-sm font-bold transition">
+                  <svg class="w-4 h-4">
+                    <use href="#i-chevleft" />
+                  </svg> Volver a Visión General
+                </button>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════ MODAL GENÉRICO ════════════════════════════ -->
+  <div id="modal-root" class="fixed inset-0 z-[70] hidden">
+    <div id="modal-scrim" class="absolute inset-0 bg-ink/85 backdrop-blur-sm"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
+      <div id="modal-box" class="pointer-events-auto w-full max-w-lg max-h-[88vh] overflow-y-auto scroll-wood rounded-lg
+             border-2 border-wood bg-ink-2 shadow-dossier anim-view">
+        <div id="modal-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════ TOASTS ════════════════════════════ -->
+  <div id="toast-root" class="fixed bottom-4 right-4 z-[80] flex flex-col gap-2 items-end"></div>
+
+  <script>
+    /* ═══════════════════════════════════════════════════════════════════════
+       MOCKUP — Vendetta 2026 · Dashboard / Visión General
+       Vanilla JS, sin build. Datos de muestra estáticos.
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /* ───────────────────────── DATOS ───────────────────────── */
+    const DB = {
+      user: {
+        name: 'Don Vittorio Corleone',
+        title: 'Capo dei Capi · Nivel 42',
+        family: { name: 'Famiglia Corleone', tag: '[COR]', initial: 'C' },
+        points: { entrenamiento: 4820, edificios: 12450, tropas: 9310 },
+        lealtad: 99,
+      },
+      properties: [
+        {
+          id: 'p1', nombre: 'Villa Corleone', ciudad: '3', barrio: 'Colinas del Norte', edificio: '3',
+          armas: 12500, municion: 8300, alcohol: 9700, dolares: 186400,
+          cap: { armas: 20000, municion: 15000, alcohol: 10000, dolares: 250000 }
+        },
+        {
+          id: 'p2', nombre: 'Warehouse Little Italy', ciudad: '1', barrio: 'Distrito Portuario', edificio: '14',
+          armas: 3200, municion: 11800, alcohol: 1500, dolares: 42900,
+          cap: { armas: 12000, municion: 15000, alcohol: 8000, dolares: 120000 }
+        },
+        {
+          id: 'p3', nombre: 'Club El Faraón', ciudad: '2', barrio: 'Distrito de Entretenimiento', edificio: '7',
+          armas: 8600, municion: 2200, alcohol: 6400, dolares: 271000,
+          cap: { armas: 10000, municion: 6000, alcohol: 9000, dolares: 300000 }
+        },
+      ],
+    };
+
+    /* ── Nav ── */
+    const NAV_MAIN = [
+      { view: 'overview', label: 'Visión General', icon: 'i-home' },
+      { view: 'rooms', label: 'Habitaciones', icon: 'i-door' },
+      { view: 'recruitment', label: 'Reclutamiento', icon: 'i-users' },
+      { view: 'training', label: 'Entrenamiento', icon: 'i-target' },
+      { view: 'security', label: 'Seguridad', icon: 'i-shield' },
+    ];
+    const NAV_SECOND = [
+      { view: 'technologies', label: 'Tecnologías', icon: 'i-flask' },
+      { view: 'family', label: 'Familia', icon: 'i-users' },
+      { view: 'resources', label: 'Recursos', icon: 'i-package' },
+      { view: 'map', label: 'Mapa', icon: 'i-map' },
+      { view: 'missions', label: 'Misiones', icon: 'i-clipboard' },
+      { view: 'simulator', label: 'Simulador', icon: 'i-calculator' },
+      { view: 'farms', label: 'Lista de granjas', icon: 'i-list' },
+    ];
+    const NAV_TERT = [
+      { view: 'messages', label: 'Mensajes', icon: 'i-mail' },
+      { view: 'statistics', label: 'Estadísticas', icon: 'i-chart' },
+      { view: 'rankings', label: 'Clasificaciones', icon: 'i-trophy' },
+      { view: 'settings', label: 'Ajustes', icon: 'i-settings' },
+      { view: 'search', label: 'Buscar', icon: 'i-search' },
+    ];
+
+    /* ── Estado ── */
+    const S = {
+      view: 'overview',
+      propId: 'p1',
+      cancelledMission: false,
+    };
+
+    /* ───────────────────────── HELPERS ───────────────────────── */
+    const $ = (s, r = document) => r.querySelector(s);
+    const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const ico = (id, cls = 'w-4 h-4') => `<svg class="${cls} shrink-0"><use href="#${id}"/></svg>`;
+    const fmt = n => Math.floor(n).toLocaleString('de-DE');
+    const prop = () => DB.properties.find(p => p.id === S.propId);
+
+    /* ───────────────────────── SIDEBAR ───────────────────────── */
+    function renderNav() {
+      const group = (items) => `
+    <div class="px-2">
+      ${items.map(it => `
+        <button data-nav="${it.view}"
+          class="navbtn w-full flex items-center gap-3 rounded-md px-3 py-2 mb-0.5 text-left
+                 text-parch-400 hover:text-parch-50">
+          <span class="nav-ico text-parch-500">${ico(it.icon, 'w-[18px] h-[18px]')}</span>
+          <span class="nav-lbl text-sm truncate">${it.label}</span>
+        </button>`).join('')}
+    </div>`;
+
+      const rule = `<div class="rule mx-3 my-2"></div>`;
+      // El selector de propiedad va entre el grupo 1 (termina en Seguridad) y el grupo 2 (empieza en Tecnologías)
+      $('#nav-a').innerHTML = group(NAV_MAIN) + rule;
+      $('#nav-b').innerHTML = rule + group(NAV_SECOND) + rule + group(NAV_TERT);
+
+      $$('[data-nav]').forEach(b => b.onclick = () => go(b.dataset.nav));
+
+      // Selector de propiedad
+      const p = prop();
+      $('#prop-selector-slot').innerHTML = `
+    <button id="btn-prop" class="tip w-full flex items-center gap-2 rounded-md border border-wood bg-ink-2 px-3 py-2
+           hover:border-gold/60 transition text-left" data-tip="Cambiar de propiedad" style="--tw-shadow: none">
+      <span class="text-gold">${ico('i-building', 'w-4 h-4')}</span>
+      <span class="min-w-0 flex-1">
+        <span class="block text-[9px] uppercase tracking-[.16em] text-gold/60 leading-none mb-0.5">Propiedad activa</span>
+        <span class="block text-sm text-parch-50 font-medium truncate leading-tight">${esc(p.nombre)}</span>
+        <span class="block font-mono text-[10px] text-parch-400 truncate">${p.ciudad}:${p.barrio}:${p.edificio}</span>
+      </span>
+      <span class="text-parch-500">${ico('i-chevrons', 'w-4 h-4')}</span>
+    </button>
+    <div id="prop-menu" class="hidden mt-1 rounded-md border border-wood bg-ink-3 overflow-hidden shadow-dossier">
+      <p class="px-3 py-1.5 text-[9px] uppercase tracking-[.18em] text-gold/60 border-b border-wood">Tus Propiedades</p>
+      ${DB.properties.map(x => `
+        <button data-pick="${x.id}" class="w-full flex items-center gap-2 px-3 py-2 hover:bg-crimson/20 transition text-left">
+          <span class="text-gold">${ico(x.id === p.id ? 'i-check' : 'i-building', 'w-3.5 h-3.5')}</span>
+          <span class="min-w-0">
+            <span class="block text-xs text-parch-50 truncate">${esc(x.nombre)}</span>
+            <span class="block font-mono text-[10px] text-parch-400">${x.ciudad}:${x.barrio}:${x.edificio}</span>
+          </span>
+        </button>`).join('')}
+    </div>`;
+
+      $('#btn-prop').onclick = e => { e.stopPropagation(); $('#prop-menu').classList.toggle('hidden'); };
+      $$('[data-pick]').forEach(b => b.onclick = () => {
+        S.propId = b.dataset.pick;
+        $('#prop-menu').classList.add('hidden');
+        renderSidebar(); renderResources(); renderEmpire(); renderQueue(); renderStats();
+        toast('Propiedad cambiada', `Ahora operás en ${prop().nombre}.`, 'ok');
+      });
+    }
+
+    function renderSidebarFooter() {
+      $('#sb-name').textContent = DB.user.name;
+      $('#sb-title').textContent = DB.user.title;
+      $('#sb-avatar').textContent = DB.user.name.charAt(0).toUpperCase();
+    }
+
+    function renderSidebar() {
+      renderNav();
+      $$('[data-nav]').forEach(b => b.classList.toggle('is-active', b.dataset.nav === S.view));
+    }
+
+    /* ───────────────────────── NAVEGACIÓN ───────────────────────── */
+    const PLACEHOLDERS = {
+      rooms: ['Habitaciones', 'Construí y mejorá los edificios de tus propiedades. Cada sala tiene coste, duración y producción.'],
+      recruitment: ['Reclutamiento', 'Gestioná las colas de reclutamiento de tropas por propiedad.'],
+      training: ['Entrenamiento', 'Investigación y doctrinas especiales: cada entrenamiento desbloquea nuevas aptitudes.'],
+      security: ['Seguridad', 'Defensa de propiedades, guarniciones y órdenes activas.'],
+      technologies: ['Tecnologías', 'Árbol tecnológico global del imperio.'],
+      family: ['Familia', 'Gestión de familia: miembros, invitaciones y pacto.'],
+      resources: ['Recursos', 'Detalle de producción y consumo de los 4 recursos.'],
+      map: ['Mapa', 'Mapa de la ciudad con propiedades, trincheras y rutas.'],
+      missions: ['Misiones', 'Misiones activas: ataque, defensa, transporte, espionaje y ocupación.'],
+      simulator: ['Simulador', 'Calculadora de escalado, combate y puntos.'],
+      farms: ['Lista de granjas', 'Granjas y cuentas de producción diaria.'],
+      messages: ['Mensajes', 'Centro de mensajes del sistema y de otros usuarios.'],
+      statistics: ['Estadísticas', 'Historial de puntuación y progreso personal.'],
+      rankings: ['Clasificaciones', 'Clasificaciones globales del imperio.'],
+      settings: ['Ajustes', 'Configuración de la cuenta y del juego.'],
+      search: ['Buscar', 'Búsqueda de usuarios, familias y propiedades.'],
+    };
+    function go(view) {
+      S.view = view;
+      closeMobileNav();
+      const isOv = view === 'overview';
+      $('#view-overview').classList.toggle('hidden', !isOv);
+      $('#view-placeholder').classList.toggle('hidden', isOv);
+      if (!isOv) {
+        const [t, d] = PLACEHOLDERS[view] || [view, 'Vista no implementada.'];
+        $('#ph-title').textContent = t;
+        $('#ph-desc').innerHTML = `${esc(d)} <span class="text-parch-500">Este mockup cubre el shell y la vista Visión General.</span>`;
+        $('#view-title').textContent = t;
+      } else {
+        $('#view-title').textContent = 'Visión General';
+      }
+      $$('[data-nav]').forEach(b => b.classList.toggle('is-active', b.dataset.nav === view));
+      const sc = document.querySelector('.scroll-wood.flex-1');
+      if (sc) sc.scrollTop = 0;
+    }
+
+    /* ───────────────────────── SIDEBAR RESPONSIVE ───────────────────────── */
+    function openMobileNav() { $('#sidebar').classList.remove('max-lg:-translate-x-full'); $('#scrim').classList.remove('opacity-0', 'pointer-events-none'); }
+    function closeMobileNav() { $('#sidebar').classList.add('max-lg:-translate-x-full'); $('#scrim').classList.add('opacity-0', 'pointer-events-none'); }
+    $('#btn-menu').onclick = openMobileNav;
+    $('#scrim').onclick = closeMobileNav;
+    $('#btn-collapse').onclick = () => $('#sidebar').classList.toggle('lg:hidden');
+    $('#btn-logout').onclick = () => toast('Sesión cerrada', 'Redirigiendo a /login…', 'err');
+    document.addEventListener('click', e => { const m = $('#prop-menu'); if (m && !e.target.closest('#prop-selector-slot')) m.classList.add('hidden'); });
+
+    /* ───────────────────────── RELOJ ───────────────────────── */
+    function tickClock() {
+      const TZ = 'Africa/Nouakchott';
+      const d = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit', timeZone: TZ });
+      const t = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: TZ, hour12: false });
+      $('#hd-clock').textContent = `${d}, ${t}`;
+    }
+    setInterval(tickClock, 1000);
+
+    /* ───────────────────────── BARRA DE RECURSOS ───────────────────────── */
+    const RES = [
+      { k: 'armas', name: 'ARMAS', short: 'ARM', icon: 'i-crosshair' },
+      { k: 'municion', name: 'MUNICIÓN', short: 'MUN', icon: 'i-bullet' },
+      { k: 'alcohol', name: 'ALCOHOL', short: 'ALC', icon: 'i-wine' },
+      { k: 'dolares', name: 'DÓLARES', short: 'DOL', icon: 'i-dollar' },
+    ];
+    function capColor(cur, max) {
+      const p = max > 0 ? cur / max * 100 : 0;
+      if (p > 95) return 'text-crimson-light';
+      if (p > 80) return 'text-amber-400';
+      return 'text-gold';
+    }
+    function renderResources() {
+      const p = prop();
+      $('#resource-bar').innerHTML = `
+    ${RES.map(r => {
+        const v = p[r.k], c = p.cap[r.k], pct = Math.min(100, c ? v / c * 100 : 0);
+        const over = c && v > c;
+        return `
+      <div class="shrink-0 sm:shrink sm:flex-1 min-w-0" title="${r.name}: ${fmt(v)} / ${fmt(c)} — ${pct.toFixed(0)}% lleno">
+        <div class="flex flex-col lg:flex-row lg:items-center">
+          <!-- Escritorio: icono + nombre completo + valor en línea -->
+          <span class="hidden lg:inline shrink-0 ${over ? 'text-crimson-light' : 'text-gold/80'}">${ico(r.icon, 'w-3.5 h-3.5')}</span>
+          <span class="hidden lg:inline text-[9px] uppercase tracking-[.14em] text-parch-400 font-bold truncate">${r.name}</span>
+          <!-- Pantalla chica: solo iniciales, valor destacado debajo -->
+          <span class="lg:hidden text-[8px] uppercase tracking-[.1em] text-parch-500 font-bold leading-none">${r.short}</span>
+          <span class="font-mono text-[11px] sm:text-xs lg:text-[11px] lg:ml-auto ${capColor(v, c)} font-bold tabular-nums whitespace-nowrap leading-none lg:leading-normal">${fmt(v)}</span>
+        </div>
+        <div class="mt-0.5 md:mt-1 h-[2px] md:h-[3px] rounded-full bg-ink-1 overflow-hidden">
+          <div class="h-full ${over ? 'bg-crimson' : pct > 80 ? 'bg-amber-500' : 'bg-gold'}" style="width:${pct}%"></div>
+        </div>
+      </div>`;
+      }).join('')}`;
+    }
+
+    /* ───────────────────────── VISION GENERAL DEL IMPERIO ───────────────────────── */
+    function renderEmpire() {
+      const p = prop(), u = DB.user;
+      $('#emp-player').textContent = u.name;
+      $('#emp-player-sub').textContent = u.title;
+      $('#emp-family').textContent = u.family.name;
+      $('#emp-family-tag').textContent = u.family.tag;
+      $('#emp-family-avatar').textContent = u.family.initial;
+      $('#emp-coords').textContent = `[${p.ciudad}:${p.barrio}:${p.edificio}]  ${p.nombre}`;
+    }
+    $$('[data-act]').forEach(b => b.onclick = () => {
+      const a = b.dataset.act;
+      if (a === 'msg') toast('7 mensajes sin leer', 'Redirigiendo a /messages…', 'ok');
+      if (a === 'bell') toast('Sin notificaciones', 'Todo al día, capo.', 'ok');
+      if (a === 'family') go('family');
+    });
+
+    /* ───────────────────────── COLAS DE ESTADO ───────────────────────── */
+    /* Contadores regresivos anclados al momento de carga → siempre “en curso”. */
+    const T0 = Date.now();
+    const HMS = ms => {
+      let s = Math.max(0, Math.floor(ms / 1000));
+      return [Math.floor(s / 3600), Math.floor(s % 3600 / 60), s % 60].map(v => String(v).padStart(2, '0')).join(':');
+    };
+    const QUEUE = () => {
+      const p = prop();
+      const missions = S.cancelledMission
+        ? [{ icon: 'i-undo', icoCls: 'text-parch-400', label: 'REGRESO desde 2:1:14', sub: 'Convoy de suministros en retirada', end: T0 + 3 * 3600e3 + 7 * 60e3, tag: 'Retirada' }]
+        : [
+          { icon: 'i-swords', icoCls: 'text-crimson-light', label: 'ATAQUE a 1:1:5', sub: `Flota de 40 Francotiradores · ${p.nombre}`, end: T0 + 42 * 60e3 + 18e3, tag: 'Llegada', cancellable: true },
+          { icon: 'i-undo', icoCls: 'text-parch-400', label: 'REGRESO desde 2:1:14', sub: 'Convoy de suministros en retirada', end: T0 + 3 * 3600e3 + 7 * 60e3, tag: 'Retirada' },
+        ];
+      return [
+        { key: 'misiones', title: 'MISIONES', slots: `${missions.length}/1`, accent: 'from-crimson to-crimson-dark', items: missions },
+        {
+          key: 'construccion', title: 'HABITACIONES EN CONSTRUCCIÓN', slots: `2/${DB.properties.length * 5}`, accent: 'from-umber to-umber-light',
+          items: [
+            { icon: 'i-building2', icoCls: 'text-amber-400', label: 'Armería (Nvl 3)', sub: p.nombre, end: T0 + 18 * 60e3 + 44e3, tag: 'Obra' },
+            { icon: 'i-wine', icoCls: 'text-amber-400', label: 'Almacén de alcohol (Nvl 2)', sub: 'Club El Faraón', end: T0 + 1 * 3600e3 + 52 * 60e3 + 7e3, tag: 'Obra' },
+          ]
+        },
+        {
+          key: 'reclutamiento', title: 'RECLUTAMIENTO', slots: `1/${DB.properties.length}`, accent: 'from-umber to-umber-light',
+          items: [
+            { icon: 'i-users', icoCls: 'text-emerald-400', label: '25 × Pistolero', sub: 'Warehouse Little Italy', end: T0 + 6 * 60e3 + 12e3, tag: 'Alistamiento' },
+          ]
+        },
+        {
+          key: 'entrenamiento', title: 'ENTRENAMIENTO', slots: `1/${DB.properties.length}`, accent: 'from-umber to-umber-light',
+          items: [
+            { icon: 'i-target', icoCls: 'text-sky-400', label: 'Combate cuerpo a cuerpo (Nvl 4)', sub: 'Villa Corleone', end: T0 + 12 * 3600e3 + 34 * 60e3 + 56e3, tag: 'Práctica' },
+          ]
+        },
+      ];
+    };
+
+    function renderQueue() {
+      const p = prop();
+      $('#queue-block').innerHTML = QUEUE().map(panel => `
+    <div class="rounded-lg border-2 border-wood shadow-dossier overflow-hidden">
+      <div class="px-4 py-2 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <h3 class="head text-lg leading-none text-parch-50 tracking-wide truncate">${panel.title}</h3>
+        </div>
+        <span class="font-mono text-xs font-bold text-parch-50 px-2 py-0.5 rounded bg-ink-1/60 border border-wood shrink-0">(${panel.slots})</span>
+      </div>
+      <div class="parchment p-3 space-y-2.5">
+        ${panel.items.length ? panel.items.map((it, i) => `
+          <div class="flex items-center gap-2.5">
+            <span class="${it.icoCls}">${ico(it.icon, 'w-4 h-4')}</span>
+            <div class="min-w-0 flex-1">
+              <p class="text-[13px] font-semibold text-umber leading-tight truncate">${esc(it.label)}</p>
+              <p class="text-[10px] text-umber/65 font-mono truncate">${esc(it.sub)}</p>
+            </div>
+            <div class="text-right shrink-0">
+              <p class="text-[9px] uppercase tracking-[.14em] text-umber/50">${it.tag}</p>
+              <p class="font-mono text-sm font-bold text-crimson tabular-nums" data-cd="${it.end}">${HMS(it.end - Date.now())}</p>
+            </div>
+            ${panel.key === 'misiones' && it.cancellable ? `
+              <button id="btn-cancel-mission" class="w-6 h-6 rounded flex items-center justify-center text-umber/50 hover:text-crimson hover:bg-crimson/15 transition shrink-0" title="Cancelar misión">
+                ${ico('i-x', 'w-3.5 h-3.5')}
+              </button>` : ''}
+          </div>`).join('')
+          : `<p class="text-center text-xs text-umber/60 py-1">—</p>`}
+      </div>
+    </div>`).join('');
+
+      const b = $('#btn-cancel-mission');
+      if (b) b.onclick = () => openModal(`
+    <div class="p-5">
+      <h3 class="head text-2xl text-parch-50">¿Cancelar Misión?</h3>
+      <p class="text-sm text-parch-400 mt-2 leading-relaxed">
+        La flota regresará a su propiedad de origen. El viaje de vuelta tardará el mismo tiempo que ha
+        tardado en llegar hasta su posición actual. ¿Estás seguro?
+      </p>
+      <div class="flex justify-end gap-2 pt-5 mt-4 border-t border-wood">
+        <button onclick="closeModal()" class="px-4 py-1.5 rounded-md border border-wood bg-ink-1 text-xs font-semibold hover:border-gold/60 transition">No, continuar</button>
+        <button id="btn-confirm-cancel" class="px-4 py-1.5 rounded-md bg-crimson hover:bg-crimson-light text-parch-50 text-xs font-bold transition">Sí, cancelar misión</button>
+      </div>
+    </div>`, true);
+    }
+    setInterval(() => {
+      $$('[data-cd]').forEach(el => { el.textContent = HMS(+el.dataset.cd - Date.now()); });
+    }, 1000);
+
+    /* ───────────────────────── ESTADÍSTICAS ───────────────────────── */
+    function renderStats() {
+      const p = DB.user.points;
+      // [etiqueta completa ≥xl, etiqueta simple ≥sm, inicial <sm, valor]
+      const cells = [
+        ['Puntos (Entrenamiento)', 'Entrenamiento', 'ENT', fmt(p.entrenamiento)],
+        ['Puntos (Edificios)', 'Edificios', 'EDI', fmt(p.edificios)],
+        ['Puntos (Tropas)', 'Tropas', 'TRO', fmt(p.tropas)],
+        ['Propiedades', 'Propiedades', 'PRO', String(DB.properties.length)],
+        ['Lealtad', 'Lealtad', 'LEA', DB.user.lealtad + '%'],
+      ];
+      $('#stats-bar').innerHTML = cells.map(([full, mid, short, v], i) => `
+    ${i ? `<div class="shrink-0 w-px h-5 sm:h-8 bg-wood/70"></div>` : ''}
+    <div class="flex-1 min-w-0 text-center">
+      <p class="whitespace-nowrap leading-none text-[8px] sm:text-[9px] xl:text-[10px] uppercase tracking-[.08em] sm:tracking-[.12em] text-parch-500">
+        <span class="sm:hidden">${short}</span><span class="hidden sm:inline xl:hidden">${mid}</span><span class="hidden xl:inline">${full}</span>
+      </p>
+      <p class="head mt-1 text-gold text-[15px] sm:text-lg lg:text-xl xl:text-2xl leading-none">${v}</p>
+    </div>`).join('');
+    }
+
+    /* ───────────────────────── MODAL ───────────────────────── */
+    let modalPrevFocus = null;
+    function openModal(html) {
+      modalPrevFocus = document.activeElement;
+      $('#modal-box').classList.toggle('max-w-lg', true);
+      $('#modal-body').innerHTML = html;
+      const r = $('#modal-root'); r.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      $('#modal-box').focus?.();
+    }
+    function closeModal() {
+      $('#modal-root').classList.add('hidden');
+      $('#modal-body').innerHTML = '';
+      document.body.style.overflow = '';
+      modalPrevFocus?.focus?.();
+    }
+    $('#modal-scrim').onclick = closeModal;
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { closeModal(); closeMobileNav(); }
+      if (e.key === 'Tab' && !$('#modal-root').classList.contains('hidden')) {
+        const f = $$('#modal-box button, #modal-box a, #modal-box [tabindex]:not([tabindex="-1"])');
+        if (!f.length) return;
+        const first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    });
+    /* Confirmación de cancelación de misión (bind diferido) */
+    document.addEventListener('click', e => {
+      if (e.target.id === 'btn-confirm-cancel') {
+        S.cancelledMission = true;
+        closeModal();
+        renderQueue();
+        toast('Misión cancelada', 'La flota regresa a su propiedad de origen.', 'ok');
+      }
+    });
+
+    /* ───────────────────────── TOASTS ───────────────────────── */
+    const TOAST_CLS = {
+      ok: 'border-gold-dim/60 bg-ink-2',
+      err: 'border-crimson/70 bg-crimson-deep/60',
+      info: 'border-wood bg-ink-2',
+    };
+    const TOAST_ICO = { ok: 'i-checkcircle', err: 'i-alert', info: 'i-bell' };
+    const TOAST_TXT = { ok: 'text-gold', err: 'text-crimson-light', info: 'text-parch-200' };
+    function toast(title, desc, kind = 'info') {
+      const el = document.createElement('div');
+      el.className = `pointer-events-auto anim-view w-[300px] rounded-lg border ${TOAST_CLS[kind]} px-3.5 py-3 shadow-dossier flex gap-2.5 items-start`;
+      el.innerHTML = `
+    <span class="${TOAST_TXT[kind]} mt-0.5">${ico(TOAST_ICO[kind], 'w-4 h-4')}</span>
+    <div class="min-w-0 flex-1">
+      <p class="text-xs font-bold ${TOAST_TXT[kind]} leading-tight">${esc(title)}</p>
+      <p class="text-[11px] text-parch-400 mt-0.5 leading-snug">${esc(desc)}</p>
+    </div>`;
+      $('#toast-root').appendChild(el);
+      setTimeout(() => { el.style.transition = 'opacity .3s, transform .3s'; el.style.opacity = '0'; el.style.transform = 'translateX(12px)'; }, 3200);
+      setTimeout(() => el.remove(), 3600);
+    }
+
+    /* ───────────────────────── BOOT ───────────────────────── */
+    renderSidebarFooter();
+    renderSidebar();
+    renderResources();
+    renderEmpire();
+    renderQueue();
+    renderStats();
+    tickClock();
+    toast('Sesión activa', `Bienvenido de vuelta, ${DB.user.name.split(' ').slice(-1)}.`, 'ok');
+  </script>
+</body>
+
+</html>
