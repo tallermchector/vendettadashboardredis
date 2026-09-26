@@ -5,9 +5,9 @@ import type { ColaMisiones } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { ArrowLeftRight, Check, Shield, Swords, Undo2, X } from "lucide-react";
-import { Button } from "../ui/button";
 import { cancelarMision } from "@/lib/actions/cancel-mission.action";
 import { useToast } from "@/hooks/use-toast";
+import { CountdownText, QueueEmpty, QueuePanel, QueueRow } from "./queue-panel";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -24,13 +24,17 @@ type MissionStatusProps = {
     missions: ColaMisiones[];
 };
 
-const missionIcons: { [key: string]: React.ReactNode } = {
-    ATAQUE: <Swords className="h-4 w-4 text-destructive" />,
-    DEFENDER: <Shield className="h-4 w-4 text-blue-500" />,
-    TRANSPORTE: <ArrowLeftRight className="h-4 w-4 text-green-500" />,
-    ESPIONAJE: <ArrowLeftRight className="h-4 w-4 text-yellow-500" />,
-    OCUPAR: <Check className="h-4 w-4 text-primary" />,
-    REGRESO: <Undo2 className="h-4 w-4 text-gray-400" />,
+// El color de la barra de la fila es el del icono: carmin = ataque (hostil),
+// azul = defensa, verde = transporte, ambar = espionaje, oro = ocupar,
+// gris = regreso. La retirada no compite por la atencion con un ataque en
+// curso, asi que se apaga.
+const missionTones: { [key: string]: { tone: string, icon: React.ReactNode } } = {
+    ATAQUE:    { tone: 'border-l-crimson text-crimson',        icon: <Swords className="h-4 w-4" /> },
+    DEFENDER:  { tone: 'border-l-blue-500 text-blue-500',      icon: <Shield className="h-4 w-4" /> },
+    TRANSPORTE:{ tone: 'border-l-emerald-500 text-emerald-500',icon: <ArrowLeftRight className="h-4 w-4" /> },
+    ESPIONAJE: { tone: 'border-l-amber-500 text-amber-500',    icon: <ArrowLeftRight className="h-4 w-4" /> },
+    OCUPAR:    { tone: 'border-l-gold text-gold',              icon: <Check className="h-4 w-4" /> },
+    REGRESO:   { tone: 'border-l-umber/30 text-umber/50',      icon: <Undo2 className="h-4 w-4" /> },
 };
 
 function formatTime(totalSeconds: number): string {
@@ -41,6 +45,27 @@ function formatTime(totalSeconds: number): string {
     return [hours, minutes, seconds]
         .map(v => v.toString().padStart(2, '0'))
         .join(':');
+}
+
+/**
+ * `ColaMisiones.tropas` es un JSON crudo `{ id, cantidad }[]` escrito dentro de
+ * la columna de texto. Cuantas tropas viajan bajo la bandera no sale del
+ * schema, asi que se deriva. Un parseo fallido no puede tumbar el panel de
+ * cola —degrada a null y la fila dice "Flota en ruta"—, asi que esta funcion
+ * no lanza nunca.
+ */
+function troopStrength(tropas: string): string | null {
+    try {
+        const parsed: unknown = JSON.parse(tropas);
+        if (!Array.isArray(parsed)) return null;
+        const total = parsed.reduce(
+            (sum, entry) => sum + (Number((entry as { cantidad?: unknown })?.cantidad) || 0),
+            0
+        );
+        return total > 0 ? `${total} ${total === 1 ? 'tropo' : 'tropos'}` : null;
+    } catch {
+        return null;
+    }
 }
 
 function MissionCountdown({ mission }: { mission: ColaMisiones }) {
@@ -111,60 +136,65 @@ function MissionCountdown({ mission }: { mission: ColaMisiones }) {
 
     if (!status.endDate && mission.tipoMision !== 'REGRESO') return null;
 
+    const { tone, icon } = missionTones[mission.tipoMision] ?? missionTones.REGRESO;
+    const isReturning = mission.tipoMision === 'REGRESO' || status.label === "Regresando";
+    const canCancel = mission.tipoMision !== 'REGRESO' && new Date() < new Date(mission.fechaLlegada);
+
     return (
-        <div className="flex justify-between items-center text-sm">
-            <div className="flex items-center gap-2">
-                {missionIcons[mission.tipoMision]}
-                <span>{mission.tipoMision} a {mission.destinoCiudad}:{mission.destinoBarrio}:{mission.destinoEdificio}</span>
-            </div>
-            <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">{status.label}</span>
-                <span className="font-mono text-accent font-bold">{status.timeLeft}</span>
-                {mission.tipoMision !== 'REGRESO' && new Date() < new Date(mission.fechaLlegada) && (
-                     <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" disabled={isPending}>
-                                <X className="h-4 w-4"/>
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                            <AlertDialogTitle>¿Cancelar Misión?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                La flota regresará a su propiedad de origen. El viaje de vuelta tardará el mismo tiempo que ha tardado en llegar hasta su posición actual. ¿Estás seguro?
-                            </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                            <AlertDialogCancel>No, continuar</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleCancel} disabled={isPending}>
-                                {isPending ? 'Cancelando...' : 'Sí, cancelar misión'}
-                            </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                )}
-            </div>
-        </div>
+        <QueueRow
+            tone={tone}
+            icon={icon}
+            label={`${mission.tipoMision} a ${mission.destinoCiudad}:${mission.destinoBarrio}:${mission.destinoEdificio}`}
+            sub={isReturning
+                ? "Flota en retirada"
+                : troopStrength(mission.tropas) ?? "Flota en ruta"}
+            tag={status.label}
+            // Una retirada no es una cuenta regresiva urgente: el carmin queda
+            // reservado a lo que se puede cambiar (un ataque que llega).
+            timer={<CountdownText time={status.timeLeft} muted={isReturning} />}
+            action={canCancel ? (
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <button
+                            type="button"
+                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-umber/50 transition-colors hover:bg-crimson/15 hover:text-crimson focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-crimson"
+                            disabled={isPending}
+                        >
+                            <X className="h-3.5 w-3.5" />
+                            <span className="sr-only">Cancelar misión a {mission.destinoCiudad}:{mission.destinoBarrio}:{mission.destinoEdificio}</span>
+                        </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>¿Cancelar misión?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            La flota regresará a su propiedad de origen. El viaje de vuelta tardará lo mismo que tardó en llegar. No hay forma de acelerar el regreso.
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>No, continuar</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleCancel} disabled={isPending}>
+                            {isPending ? 'Cancelando…' : 'Sí, cancelar misión'}
+                        </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            ) : undefined}
+        />
     );
 }
 
 
 export function MissionStatus({ missions }: MissionStatusProps) {
     return (
-        <div className="space-y-1">
-            <div className="bg-primary text-primary-foreground px-4 py-1.5 rounded-t-md flex justify-between items-center font-bold">
-                <span>MISIONES</span>
-                <span>({missions.length}/1)</span>
-            </div>
-            <div className="bg-card text-card-foreground px-4 py-3 rounded-b-md space-y-2">
-                {missions.length > 0 ? (
-                    missions.map(mission => (
-                        <MissionCountdown key={mission.id} mission={mission} />
-                    ))
-                ) : (
-                    <p className="text-muted-foreground text-center text-sm">Ninguna unidad en movimiento</p>
-                )}
-            </div>
-        </div>
+        <QueuePanel title="Misiones" slots={`${missions.length}/1`}>
+            {missions.length > 0 ? (
+                missions.map(mission => (
+                    <MissionCountdown key={mission.id} mission={mission} />
+                ))
+            ) : (
+                <QueueEmpty>Ninguna flota en movimiento.</QueueEmpty>
+            )}
+        </QueuePanel>
     )
 }

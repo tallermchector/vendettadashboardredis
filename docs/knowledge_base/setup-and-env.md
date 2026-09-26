@@ -49,6 +49,8 @@ Nunca subas una clave; `!.env.example` es la excepción que sí se versiona.
 | `start` | `pnpm start` | Servidor de producción. |
 | `lint` | `pnpm lint` | ESLint. |
 | `typecheck` | `pnpm typecheck` | `tsc --noEmit`. |
+| `purgecheck` | `pnpm purgecheck` | Detecta `className` purgados por Tailwind (archivos modificados vs HEAD). |
+| `verify` | `pnpm verify` | `typecheck` + `purgecheck`. |
 | `generate` | `pnpm generate` | `prisma generate`. |
 | `prisma:generate` | `pnpm prisma:generate` | Alias del anterior. |
 | `prisma8:migrate` | `pnpm prisma8:migrate` | Migración a Prisma 8. |

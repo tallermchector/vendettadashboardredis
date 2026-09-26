@@ -190,13 +190,30 @@ herramienta (`.claudeignore`, `.cursorignore`, `.geminiignore`) se generan con
 
 ```bash
 pnpm typecheck    # tsc --noEmit
+pnpm purgecheck   # clases de Tailwind purgadas en silencio (ver abajo)
 pnpm lint
+
+pnpm verify       # typecheck + purgecheck (mientras lint siga roto)
 ```
 
 > `next.config.ts` tiene `typescript.ignoreBuildErrors: true`, así que **`pnpm build` no te
 > protege de errores de tipos** — ~25 errores conocidos siguen ocultos. Son tu responsabilidad.
 > (`eslint.ignoreDuringBuilds` ya se eliminó: estaba obsoleta en Next 16 y emitía un warning
 > en cada build. No la reintroduzcas.)
+
+### `pnpm purgecheck` — el tercer gate
+
+Tailwind v3 **purga en silencio** todo `className` que no encuentra en los globs de `content`.
+Un typo no da error de build: da un elemento sin estilo. Ni `tsc` ni ESLint lo detectan, así que
+este script es el único que lo cubre.
+
+Por defecto revisa **solo los archivos de código modificados contra HEAD**, no todo `src`:
+correrlo sobre todo el repo reportaría como faltantes las clases que el código construye con
+template literals, que no aparecen escritas en ningún lado. Ese ruido haría que se dejara de
+confiar en él. Acepta rutas explícitas: `pnpm purgecheck src/components/...`.
+
+Ojo con la escala de opacidad: los pasos son de 5 en 5 (`…/10`, `/15`, `/20`).
+Un `bg-umber/12` **se purga sin avisar**.
 
 El build en Windows puede fallar con `EPERM … symlink` al empaquetar `output: 'standalone'`.
 Es el layout de symlinks de pnpm sin Developer Mode, no un error de código.
@@ -228,3 +245,13 @@ Es el layout de symlinks de pnpm sin Developer Mode, no un error de código.
 
 Si encuentras un conflicto entre dos fuentes y no puedes resolverlo por precedencia,
 **no lo resuelvas por intuición**: reporta el conflicto y para.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

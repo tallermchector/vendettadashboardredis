@@ -1,18 +1,32 @@
 import type {Metadata, Viewport} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
-import { Roboto, Bebas_Neue as BebasNeue } from 'next/font/google';
+import { Roboto_Flex as RobotoFlex, Bebas_Neue as BebasNeue, JetBrains_Mono as JetBrainsMono } from 'next/font/google';
 
-const roboto = Roboto({
+// DESIGN.md "Typography" fija las tres familias. `Roboto` se uso antes como
+// esqueleto; la variable conserva el nombre `--font-roboto` para no romper
+// `tailwind.config.ts` ni ningun consumidor existente.
+const roboto = RobotoFlex({
   subsets: ['latin'],
   weight: ['400', '500', '700'],
   variable: '--font-roboto',
+  display: 'swap',
 });
 
 const bebas_neue = BebasNeue({
   subsets: ['latin'],
   weight: '400',
   variable: '--font-bebas-neue',
+  display: 'swap',
+});
+
+// Exclusiva de datos tabulares: cuentas regresivas, saldos, coordenadas.
+// `tabular-nums` es la razon de su presencia — ver tailwind.config.ts.
+const jetbrains_mono = JetBrainsMono({
+  subsets: ['latin'],
+  weight: ['500', '700'],
+  variable: '--font-jetbrains-mono',
+  display: 'swap',
 });
 
 const APP_NAME = "Vendetta";
@@ -79,7 +93,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#121212",
+  // ink-base: el piso del escritorio, no gris de sistema.
+  themeColor: "#0a0806",
   colorScheme: "dark",
 };
 
@@ -91,7 +106,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className="dark">
-      <body className={`${roboto.variable} ${bebas_neue.variable} font-sans antialiased bg-background`}>
+      <body className={`${roboto.variable} ${bebas_neue.variable} ${jetbrains_mono.variable} font-sans antialiased bg-background`}>
         {children}
         <Toaster />
       </body>

@@ -1,21 +1,32 @@
-
 import { Suspense } from "react"
 import { ResourceBar } from "@/components/dashboard/resource-bar";
 import { DashboardClientLayout } from "@/components/dashboard/dashboard-client-layout";
 import { verificarYFinalizarConstruccion, verificarYFinalizarReclutamiento, verificarYFinalizarEntrenamientos, actualizarPuntuacionUsuario, obtenerEstadoJuegoActualizado, verificarYFinalizarMisiones } from "@/lib/actions/user.actions";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getSessionUser } from "@/lib/auth";
+import { Building2, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PropertyProvider } from "@/contexts/property-context";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export const dynamic = 'force-dynamic';
 
+// El rail de recursos se dibuja a la derecha del titulo de la vista, dentro de
+// la misma barra. Antes era un <div sticky top-14 sm:top-16> aparte, colgado
+// debajo de un header que solo contenia el disparador movil: dos barras
+// apiladas y un desplazamiento magico para que la segunda no tapara la
+// primera. Ahora es una sola fila.
 function ResourceBarFallback() {
     return (
-        <div className="w-full bg-black/80 text-white p-2 sticky top-14 sm:top-16 z-10">
-            <div className="container mx-auto flex items-center justify-between h-8">
-                <Skeleton className="h-5 w-full bg-muted shimmer" />
-            </div>
+        <div className="flex flex-1 items-center gap-4 overflow-hidden border-l border-wood/60 pl-3">
+            {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="flex min-w-0 flex-1 flex-col gap-1">
+                    <Skeleton className="shimmer h-2.5 w-2/3 bg-ink-3" />
+                    <Skeleton className="shimmer h-1 w-full rounded-full bg-ink-3" />
+                </div>
+            ))}
         </div>
     )
 }
@@ -25,7 +36,7 @@ export default async function DashboardLayout({
   }: {
     children: React.ReactNode
   }) {
-  
+
   const sessionUser = await getSessionUser();
 
   if (!sessionUser) {
@@ -46,15 +57,38 @@ export default async function DashboardLayout({
   const userWithUpdatedProgress = await obtenerEstadoJuegoActualizado(combinedUser);
   const finalUser = await actualizarPuntuacionUsuario(userWithUpdatedProgress);
 
+  // Sin propiedades no hay imperio que administrar: se dice que falta que hacer
+  // y se ofrece la accion, en vez de un h2 suelto.
   if (!finalUser.propiedades || finalUser.propiedades.length === 0) {
-      // Redirect to a page to create the first property if none exist
-      // For now, just show an error message or redirect to overview with a message
       return (
         <DashboardClientLayout user={finalUser}>
-            <main className="p-4 md:p-6">
-              <h2 className="text-2xl font-bold">Sin propiedades</h2>
-              <p>No tienes ninguna propiedad. ¡Crea una para empezar!</p>
-            </main>
+            <div className="flex flex-1 items-center justify-center p-4 md:p-8">
+                <div className="dossier anim-view w-full max-w-md overflow-hidden">
+                    <div className="ribbon ribbon-crimson" />
+                    <div className="flex flex-col items-center gap-4 px-6 py-10 text-center">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-crimson bg-crimson-deep text-gold shadow-inner">
+                            <Building2 className="h-6 w-6" />
+                        </div>
+                        <div className="space-y-1.5">
+                            <p className="eyebrow">Sin propiedades</p>
+                            <h2 className="font-heading text-3xl text-parch-50">
+                                Todo imperio arranca por un sótano
+                            </h2>
+                            <p className="text-sm leading-relaxed text-parch-300">
+                                Registrá tu primera propiedad para empezar a construir,
+                                reclutar tropas y mandar flotas sobre la ciudad.
+                            </p>
+                        </div>
+                        <Link
+                            href="/rooms"
+                            className={cn(buttonVariants(), "font-heading uppercase tracking-wider")}
+                        >
+                            <Plus className="h-4 w-4" />
+                            Registrar propiedad
+                        </Link>
+                    </div>
+                </div>
+            </div>
         </DashboardClientLayout>
       )
   }
@@ -65,20 +99,25 @@ export default async function DashboardLayout({
     return 0;
   });
 
-
   return (
     <Suspense>
       <PropertyProvider initialProperties={sortedProperties}>
-          <DashboardClientLayout user={finalUser}>
-              <div className="sticky top-14 sm:top-16 z-20">
+          <DashboardClientLayout
+              user={finalUser}
+              header={
                   <Suspense fallback={<ResourceBarFallback />}>
                       <ResourceBar user={finalUser} />
                   </Suspense>
-              </div>
-              <div className="flex-1">
-                <main className="p-4 md:p-6">
-                  {children}
-                </main>
+              }
+          >
+              {/* El landmark <main> lo aporta `SidebarInset` (que ya envuelve a
+                  `children`). Poner un segundo <main> aqui anidaba dos
+                  landmarks de contenido en la misma pagina, que es HTML
+                  invalido y duplica la entrada "main" en la navegacion por
+                  landmarks del lector de pantalla. Este <div> existe solo para
+                  poner el sello de la lampara sobre la superficie que se ve. */}
+              <div className="desk-vignette flex-1">
+                {children}
               </div>
           </DashboardClientLayout>
       </PropertyProvider>

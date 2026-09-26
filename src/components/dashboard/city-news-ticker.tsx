@@ -1,29 +1,22 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { 
-    Newspaper, 
-    Radio, 
-    Flame, 
-    ShieldAlert, 
-    TrendingUp, 
-    Clock, 
-    ChevronLeft, 
-    ChevronRight, 
-    Pause, 
-    Play, 
-    RefreshCw, 
-    AlertTriangle, 
-    Building2, 
-    Crosshair, 
-    Zap, 
-    Eye,
-    Maximize2,
-    SlidersHorizontal,
-    Volume2
+import {
+    Newspaper,
+    Radio,
+    Flame,
+    ShieldAlert,
+    TrendingUp,
+    Clock,
+    ChevronLeft,
+    ChevronRight,
+    Pause,
+    Play,
+    RefreshCw,
+    AlertTriangle,
+    Crosshair,
+    Zap,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -33,6 +26,7 @@ import {
     DialogDescription,
 } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 export type NewsCategory = 'TODAS' | 'BAJO_MUNDO' | 'POLICIAL' | 'MERCADO_NEGRO' | 'RUMORES';
 
@@ -160,13 +154,34 @@ const INITIAL_NEWS_ITEMS: NewsItem[] = [
     },
 ];
 
-const CATEGORY_LABELS: Record<NewsCategory, { label: string; color: string; icon: React.ReactNode }> = {
-    TODAS: { label: 'Todas las Noticias', color: 'bg-zinc-800 text-zinc-200 border-zinc-700', icon: <Newspaper className="h-3.5 w-3.5" /> },
-    BAJO_MUNDO: { label: 'Bajo Mundo', color: 'bg-amber-950/60 text-amber-300 border-amber-800/60', icon: <Flame className="h-3.5 w-3.5" /> },
-    POLICIAL: { label: 'Ley y Orden', color: 'bg-blue-950/60 text-blue-300 border-blue-800/60', icon: <ShieldAlert className="h-3.5 w-3.5" /> },
-    MERCADO_NEGRO: { label: 'Mercado Negro', color: 'bg-emerald-950/60 text-emerald-300 border-emerald-800/60', icon: <TrendingUp className="h-3.5 w-3.5" /> },
-    RUMORES: { label: 'Rumores & Inteligencia', color: 'bg-purple-950/60 text-purple-300 border-purple-800/60', icon: <Radio className="h-3.5 w-3.5" /> },
+/**
+ * Color de seccion. No es decorativo: hereda el mismo vocabulario semantico
+ * que las colas de arriba, para que un icono carmin signifique "hostil" en
+ * toda la pagina y no solo en un modulo. El morado del original no existe en
+ * el sistema, asi que RUMORES baja a madera: es el unico rumor que no llega
+ * confirmado por ningun cable oficial.
+ */
+const CATEGORY_LABELS: Record<NewsCategory, { label: string; chip: string; icon: React.ReactNode }> = {
+    TODAS:         { label: 'Todas',          chip: 'border-wood bg-ink-1 text-parch-300',            icon: <Newspaper className="h-3 w-3" /> },
+    BAJO_MUNDO:    { label: 'Bajo Mundo',      chip: 'border-crimson/50 bg-crimson/15 text-crimson-light', icon: <Flame className="h-3 w-3" /> },
+    POLICIAL:      { label: 'Ley y Orden',    chip: 'border-blue-700/70 bg-blue-950/50 text-blue-300', icon: <ShieldAlert className="h-3 w-3" /> },
+    MERCADO_NEGRO: { label: 'Mercado Negro',  chip: 'border-gold/50 bg-gold/10 text-gold-light',     icon: <TrendingUp className="h-3 w-3" /> },
+    RUMORES:       { label: 'Rumores',         chip: 'border-umber/40 bg-ink-1 text-parch-400',         icon: <Radio className="h-3 w-3" /> },
 };
+
+/** Pastilla de seccion. Un unico lugar, para que chip y leyenda no divergan. */
+function CategoryChip({ category, className }: { category: NewsCategory, className?: string }) {
+    const config = CATEGORY_LABELS[category];
+    return (
+        <span className={cn(
+            'inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[.1em]',
+            config.chip, className
+        )}>
+            {config.icon}
+            {config.label}
+        </span>
+    )
+}
 
 export function CityNewsCard() {
     const [news, setNews] = useState<NewsItem[]>(INITIAL_NEWS_ITEMS);
@@ -175,7 +190,6 @@ export function CityNewsCard() {
     const [isAutoPlay, setIsAutoPlay] = useState(true);
     const [selectedNewsDetail, setSelectedNewsDetail] = useState<NewsItem | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [audioFeedback, setAudioFeedback] = useState(false);
 
     // Filter items according to selected category
     const filteredNews = useMemo(() => {
@@ -228,319 +242,326 @@ export function CityNewsCard() {
         }, 600);
     };
 
+    /**
+     * Relevancia. Cuatro niveles y solo el mas alto se mueve: un latido en los
+     * cuatro badges seria ruido. `CRITICO` late; `ALTO` es oro macizo; el resto
+     * baja a madera, porque "moderado" e "informativo" no son estados, son la
+     * ausencia de estado.
+     */
     const getImpactBadge = (level: NewsItem['impactLevel']) => {
         switch (level) {
             case 'CRITICO':
-                return <Badge variant="destructive" className="bg-red-900/90 text-red-200 border-red-700/80 animate-pulse">CRÍTICO</Badge>;
+                return <span className="inline-flex items-center gap-1 rounded border border-crimson bg-crimson/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[.1em] text-crimson-light"><span className="h-1.5 w-1.5 rounded-full bg-crimson-light" aria-hidden="true" />Critico</span>;
             case 'ALTO':
-                return <Badge className="bg-amber-900/90 text-amber-200 border-amber-700/80">ALTA RELEVANCIA</Badge>;
+                return <span className="inline-flex items-center gap-1 rounded border border-gold/60 bg-gold/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[.1em] text-gold-light">Alta relevancia</span>;
             case 'MEDIO':
-                return <Badge className="bg-zinc-800 text-zinc-300 border-zinc-700">MODERADO</Badge>;
+                return <span className="inline-flex items-center rounded border border-wood px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[.1em] text-parch-400">Moderado</span>;
             default:
-                return <Badge variant="outline" className="text-zinc-400 border-zinc-700">INFORMATIVO</Badge>;
+                return <span className="inline-flex items-center rounded border border-wood/60 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[.1em] text-parch-400/70">Informativo</span>;
         }
     };
 
     return (
-        <Card className="border-border/60 bg-gradient-to-b from-card to-card/70 shadow-lg relative overflow-hidden" id="city-news-card">
-            {/* Top decorative subtle wire indicator line */}
-            <div className="h-0.5 w-full bg-gradient-to-r from-red-600/40 via-amber-500/40 to-transparent" />
+        <div className="dossier anim-view overflow-hidden" id="city-news-card">
+            {/* Cabecera del teletipo. Sin <Card>/<CardHeader>: el modulo ya es
+                un dossier y las primitivas de shadcn anaden un segundo bisel y
+                una segunda sombra. */}
+            <div className="ribbon ribbon-crimson-gold" />
 
-            {/* Header */}
-            <CardHeader className="p-4 pb-3 border-b border-border/40">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                    <div className="flex items-center gap-2.5">
-                        <div className="h-8 w-8 rounded-md bg-red-950/70 border border-red-800/60 flex items-center justify-center text-red-400 shadow-inner">
-                            <Newspaper className="h-4 w-4" />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <CardTitle className="text-base font-bold font-heading tracking-wide uppercase text-zinc-100 flex items-center gap-2">
-                                    La Gazzetta di Vendetta
-                                    <span className="inline-flex items-center gap-1 text-[11px] font-mono font-normal tracking-normal text-red-400 bg-red-950/40 px-1.5 py-0.5 rounded border border-red-900/40">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-ping" />
-                                        TELETIPO EN VIVO
-                                    </span>
-                                </CardTitle>
-                            </div>
-                            <CardDescription className="text-xs text-zinc-400 flex items-center gap-1.5 mt-0.5">
-                                <span>Crónica urbana, movimientos policiales y rumores del bajo mundo</span>
-                            </CardDescription>
-                        </div>
+            <div className="flex flex-col gap-3 border-b border-wood p-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex min-w-0 items-center gap-3">
+                    {/* Sello de la gazeta: madera hundida con filete, no un
+                        cuadrado rojo. */}
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded border-2 border-wood bg-ink-1 text-crimson-light">
+                        <Newspaper className="h-4 w-4" />
                     </div>
-
-                    {/* Quick ticker controls */}
-                    <div className="flex items-center gap-1.5 self-end sm:self-auto">
-                        <TooltipProvider delayDuration={150}>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button 
-                                        variant="outline" 
-                                        size="icon" 
-                                        className="h-7 w-7 text-zinc-400 hover:text-white border-white/10 hover:bg-white/5"
-                                        onClick={handleRefreshWire}
-                                        disabled={isRefreshing}
-                                    >
-                                        <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin text-amber-400' : ''}`} />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="top">
-                                    <p className="text-xs">Sintonizar nueva frecuencia de teletipo</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-
-                        <TooltipProvider delayDuration={150}>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button 
-                                        variant="outline" 
-                                        size="icon" 
-                                        className="h-7 w-7 text-zinc-400 hover:text-white border-white/10 hover:bg-white/5"
-                                        onClick={() => setIsAutoPlay(!isAutoPlay)}
-                                    >
-                                        {isAutoPlay ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 text-emerald-400" />}
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="top">
-                                    <p className="text-xs">{isAutoPlay ? 'Pausar avance automático' : 'Reanudar avance automático'}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-
-                        <div className="flex items-center rounded-md border border-white/10 bg-background/50 p-0.5">
-                            <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-6 w-6 text-zinc-400 hover:text-white hover:bg-white/10"
-                                onClick={handlePrev}
-                                disabled={filteredNews.length <= 1}
-                            >
-                                <ChevronLeft className="h-3.5 w-3.5" />
-                            </Button>
-                            <span className="text-[11px] font-mono px-1.5 text-zinc-400">
-                                {filteredNews.length > 0 ? `${currentIndex + 1}/${filteredNews.length}` : '0/0'}
+                    <div className="min-w-0">
+                        <h3 className="flex flex-wrap items-center gap-2 font-heading text-lg leading-none text-parch-50">
+                            La Gazzetta di Vendetta
+                            <span className="inline-flex items-center gap-1.5 rounded border border-crimson/60 bg-crimson/10 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[.14em] text-crimson-light">
+                                <span className="h-1.5 w-1.5 rounded-full bg-crimson-light" aria-hidden="true" />
+                                Teletipo en vivo
                             </span>
-                            <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-6 w-6 text-zinc-400 hover:text-white hover:bg-white/10"
-                                onClick={handleNext}
-                                disabled={filteredNews.length <= 1}
-                            >
-                                <ChevronRight className="h-3.5 w-3.5" />
-                            </Button>
-                        </div>
+                        </h3>
+                        <p className="mt-1 text-[11px] text-parch-400">
+                            Crónica urbana, movimientos policiales y rumores del bajo mundo
+                        </p>
                     </div>
                 </div>
 
-                {/* Category filter tabs */}
-                <div className="flex items-center gap-1.5 pt-2 overflow-x-auto no-scrollbar">
-                    {(['TODAS', 'BAJO_MUNDO', 'POLICIAL', 'MERCADO_NEGRO', 'RUMORES'] as NewsCategory[]).map(cat => {
-                        const isSelected = selectedCategory === cat;
-                        const config = CATEGORY_LABELS[cat];
-                        return (
-                            <button
-                                key={cat}
-                                onClick={() => setSelectedCategory(cat)}
-                                className={`inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full border transition-all whitespace-nowrap ${
-                                    isSelected 
-                                        ? `${config.color} ring-1 ring-white/20 shadow-sm` 
-                                        : 'bg-background/40 text-zinc-400 border-white/5 hover:bg-white/5 hover:text-zinc-200'
-                                }`}
-                            >
-                                {config.icon}
-                                {config.label}
-                            </button>
-                        );
-                    })}
-                </div>
-            </CardHeader>
+                {/* Mandos del teletipo */}
+                <div className="flex shrink-0 items-center gap-1.5">
+                    <TooltipProvider delayDuration={150}>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-7 w-7 border-wood text-parch-300 hover:border-gold hover:bg-gold/10 hover:text-gold-light"
+                                    onClick={handleRefreshWire}
+                                    disabled={isRefreshing}
+                                >
+                                    <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin text-gold' : ''}`} />
+                                    <span className="sr-only">Sintonizar nueva frecuencia de teletipo</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="text-xs">Sintonizar nueva frecuencia de teletipo</TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
 
-            {/* Active Ticker Story Body */}
-            <CardContent className="p-4 space-y-3">
+                    <TooltipProvider delayDuration={150}>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-7 w-7 border-wood text-parch-300 hover:border-gold hover:bg-gold/10 hover:text-gold-light"
+                                    onClick={() => setIsAutoPlay(!isAutoPlay)}
+                                >
+                                    {isAutoPlay ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 text-gold" />}
+                                    <span className="sr-only">{isAutoPlay ? 'Pausar avance automático' : 'Reanudar avance automático'}</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="text-xs">{isAutoPlay ? 'Pausar avance automático' : 'Reanudar avance automático'}</TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+
+                    {/* El contador va en mono tabular: es un dial, no un texto. */}
+                    <div className="flex items-center rounded border border-wood bg-ink-1/60 p-0.5">
+                        <button
+                            type="button"
+                            onClick={handlePrev}
+                            disabled={filteredNews.length <= 1}
+                            className="flex h-6 w-6 items-center justify-center rounded text-parch-300 transition-colors hover:bg-gold/15 hover:text-gold-light focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold disabled:pointer-events-none disabled:opacity-30"
+                        >
+                            <ChevronLeft className="h-3.5 w-3.5" />
+                            <span className="sr-only">Noticia anterior</span>
+                        </button>
+                        <span className="px-1.5 font-mono text-[11px] tabular-nums text-parch-300">
+                            {filteredNews.length > 0 ? `${currentIndex + 1}/${filteredNews.length}` : '0/0'}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={handleNext}
+                            disabled={filteredNews.length <= 1}
+                            className="flex h-6 w-6 items-center justify-center rounded text-parch-300 transition-colors hover:bg-gold/15 hover:text-gold-light focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold disabled:pointer-events-none disabled:opacity-30"
+                        >
+                            <ChevronRight className="h-3.5 w-3.5" />
+                            <span className="sr-only">Noticia siguiente</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Filtros de seccion. Un unico control segmentado, no cinco
+                pastillas: son cinco modos de ver la misma lista, no cinco
+                categories de contenido. */}
+            <div className="no-sb flex items-center gap-1 overflow-x-auto border-b border-wood px-3 py-2" role="tablist" aria-label="Secciones del teletipo">
+                {(['TODAS', 'BAJO_MUNDO', 'POLICIAL', 'MERCADO_NEGRO', 'RUMORES'] as NewsCategory[]).map(cat => {
+                    const isSelected = selectedCategory === cat;
+                    const config = CATEGORY_LABELS[cat];
+                    return (
+                        <button
+                            key={cat}
+                            type="button"
+                            role="tab"
+                            aria-selected={isSelected}
+                            onClick={() => setSelectedCategory(cat)}
+                            className={cn(
+                                'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded border px-2.5 py-1 text-[11px] font-bold uppercase tracking-[.1em] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold',
+                                isSelected ? config.chip : 'border-transparent text-parch-400 hover:bg-ink-1 hover:text-parch-200'
+                            )}
+                        >
+                            {config.icon}
+                            {config.label}
+                        </button>
+                    );
+                })}
+            </div>
+
+            {/* ── Despacho activo ────────────────────────────────────────────
+                Ventana hundida del teletipo, no papel. La firma de pergamino
+                esta reservada a las cuatro colas: una hoja que se reimprime
+                sola cada siete segundos contradice el mecanismo, y dos
+                superficies en papel en la misma vista compiten por el mismo
+                peso visual. */}
+            <div className="space-y-3 p-4">
                 {activeItem ? (
-                    <div 
-                        className="group relative rounded-lg border border-border/40 bg-zinc-950/60 p-3.5 hover:border-border/80 transition-all cursor-pointer"
+                    <article
+                        className="group relative cursor-pointer rounded border border-wood bg-ink-1/70 p-3.5 transition-colors hover:border-gold/50"
                         onClick={() => setSelectedNewsDetail(activeItem)}
                     >
-                        {/* Status bar top row */}
-                        <div className="flex flex-wrap items-center justify-between gap-2 text-xs mb-2">
-                            <div className="flex items-center gap-2 flex-wrap">
+                        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex flex-wrap items-center gap-1.5">
                                 {activeItem.isBreaking && (
-                                    <span className="inline-flex items-center gap-1 font-bold text-[10px] tracking-wider uppercase px-2 py-0.5 rounded bg-red-600 text-white shadow-sm animate-pulse">
+                                    <span className="inline-flex items-center gap-1 rounded border border-crimson bg-crimson px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[.12em] text-parch-50">
                                         <Zap className="h-3 w-3 fill-current" />
-                                        Última Hora
+                                        Última hora
                                     </span>
                                 )}
-                                <span className={`text-[11px] px-2 py-0.5 rounded border ${CATEGORY_LABELS[activeItem.category].color}`}>
-                                    {CATEGORY_LABELS[activeItem.category].label}
-                                </span>
+                                <CategoryChip category={activeItem.category} />
                                 {getImpactBadge(activeItem.impactLevel)}
                             </div>
 
-                            <div className="flex items-center gap-3 text-[11px] text-zinc-400">
-                                <span className="flex items-center gap-1 font-mono">
-                                    <Clock className="h-3 w-3 text-zinc-500" />
-                                    Hace {activeItem.minutesAgo} min
+                            <div className="flex items-center gap-2 font-mono text-[11px] text-parch-400">
+                                <span className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3 text-parch-400/60" aria-hidden="true" />
+                                    {activeItem.minutesAgo} min
                                 </span>
                                 {activeItem.coordinates && (
-                                    <span className="flex items-center gap-1 font-mono bg-zinc-900/80 px-1.5 py-0.5 rounded border border-zinc-800 text-zinc-300">
-                                        <Crosshair className="h-3 w-3 text-amber-500/80" />
+                                    <span className="flex items-center gap-1 rounded border border-wood bg-ink-2 px-1.5 py-0.5 text-parch-300">
+                                        <Crosshair className="h-3 w-3 text-gold/70" aria-hidden="true" />
                                         [{activeItem.coordinates}]
                                     </span>
                                 )}
                             </div>
                         </div>
 
-                        {/* Main headline */}
-                        <h4 className="text-base font-bold text-zinc-100 group-hover:text-primary transition-colors leading-snug">
+                        <h4 className="text-[15px] font-semibold leading-snug text-parch-50 transition-colors group-hover:text-gold-light">
                             {activeItem.headline}
                         </h4>
 
-                        {/* Summary description */}
-                        <p className="text-xs text-zinc-300/90 leading-relaxed mt-1.5">
+                        <p className="mt-1.5 text-xs leading-relaxed text-parch-300/90">
                             {activeItem.summary}
                         </p>
 
-                        {/* Footer info: Source & World Impact */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2.5 mt-2.5 border-t border-white/5 text-[11px]">
-                            <div className="flex items-center gap-2 text-zinc-400">
-                                <span className="font-semibold text-zinc-300">{activeItem.source}</span>
-                                <span>•</span>
-                                <span className="text-zinc-400">{activeItem.district}</span>
+                        <div className="mt-2.5 flex flex-col gap-2 border-t border-wood/60 pt-2.5 text-[11px] sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex min-w-0 items-center gap-2 text-parch-400">
+                                <span className="truncate font-semibold text-parch-200">{activeItem.source}</span>
+                                <span aria-hidden="true">·</span>
+                                <span className="truncate">{activeItem.district}</span>
                             </div>
 
-                            <div className="flex items-center justify-between sm:justify-end gap-2">
-                                <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-amber-300/90 bg-amber-950/30 px-2 py-0.5 rounded border border-amber-800/40">
-                                    <TrendingUp className="h-3 w-3 text-amber-400" />
+                            <div className="flex items-center justify-between gap-2 sm:justify-end">
+                                <span className="inline-flex items-center gap-1.5 rounded border border-gold/40 bg-gold/10 px-2 py-0.5 font-mono text-[11px] text-gold-light">
+                                    <TrendingUp className="h-3 w-3" aria-hidden="true" />
                                     {activeItem.gameWorldImpact}
                                 </span>
-                                <span className="text-primary text-[11px] font-medium flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                                <span className="flex items-center gap-0.5 font-medium text-gold transition-transform group-hover:translate-x-0.5">
                                     Leer informe
-                                    <ChevronRight className="h-3 w-3" />
+                                    <ChevronRight className="h-3 w-3" aria-hidden="true" />
                                 </span>
                             </div>
                         </div>
 
-                        {/* Auto-play progress bar indicator */}
+                        {/* Dial de avance. La duracion real de la animacion la
+                            fija el mismo 7000ms del temporizador de arriba, en
+                            un custom property: antes eran dos constantes
+                            (7000 en setInterval, 7s en el style inline) que
+                            solo se mantendian en sincronia por costumbre. */}
                         {isAutoPlay && filteredNews.length > 1 && (
-                            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-zinc-800 rounded-b-lg overflow-hidden">
-                                <div 
+                            <div className="absolute inset-x-0 bottom-0 h-0.5 overflow-hidden rounded-b-lg bg-wood/60">
+                                <div
                                     key={`${activeItem.id}-${currentIndex}`}
-                                    className="h-full bg-red-600/70 animate-[progress_7s_linear_infinite]"
-                                    style={{
-                                        animationDuration: '7s',
-                                    }}
+                                    className="h-full bg-gradient-to-r from-crimson to-gold animate-progress"
+                                    style={{ '--progress-duration': '7000ms' } as React.CSSProperties}
                                 />
                             </div>
                         )}
-                    </div>
+                    </article>
                 ) : (
-                    <div className="text-center py-6 text-sm text-zinc-400">
-                        No hay noticias en esta sección en este momento.
-                    </div>
+                    <p className="py-8 text-center text-sm text-parch-400">
+                        No hay despachos en esta seccion.
+                    </p>
                 )}
 
-                {/* Secondary Wire Headlines Carousel / Quick Feed */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                {/* Otros cables: titulares de reserva, en cascada. */}
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                     {filteredNews
                         .filter(item => item.id !== activeItem?.id)
                         .slice(0, 3)
                         .map(item => (
-                            <div
+                            <button
+                                type="button"
                                 key={item.id}
                                 onClick={() => setSelectedNewsDetail(item)}
-                                className="p-2.5 rounded border border-border/30 bg-background/40 hover:bg-white/5 hover:border-white/10 transition-all cursor-pointer flex flex-col justify-between group"
+                                className="group flex flex-col justify-between rounded border border-wood/60 bg-ink-2/50 p-2.5 text-left transition-colors hover:border-gold/50 hover:bg-ink-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold"
                             >
                                 <div>
-                                    <div className="flex items-center justify-between text-[10px] text-zinc-400 mb-1">
-                                        <span className="font-semibold text-zinc-300 truncate max-w-[120px]">{item.source}</span>
-                                        <span className="font-mono">hace {item.minutesAgo}m</span>
+                                    <div className="mb-1 flex items-center justify-between gap-2 font-mono text-[10px] text-parch-400">
+                                        <span className="truncate font-sans text-[10px] font-bold uppercase tracking-[.1em] text-parch-300">{item.source}</span>
+                                        <span className="shrink-0">{item.minutesAgo}m</span>
                                     </div>
-                                    <p className="text-xs font-medium text-zinc-200 line-clamp-2 group-hover:text-primary transition-colors">
+                                    <p className="line-clamp-2 text-xs font-medium leading-snug text-parch-200 transition-colors group-hover:text-gold-light">
                                         {item.headline}
                                     </p>
                                 </div>
-                                <div className="mt-2 pt-1.5 border-t border-white/5 flex items-center justify-between text-[10px] text-zinc-400">
-                                    <span className="truncate max-w-[130px]">{item.district}</span>
-                                    <span className="text-primary font-medium flex items-center">
-                                        Detalles
-                                        <ChevronRight className="h-2.5 w-2.5" />
-                                    </span>
+                                <div className="mt-2 flex items-center justify-between gap-1 border-t border-wood/50 pt-1.5 text-[10px] text-parch-400">
+                                    <span className="truncate">{item.district}</span>
+                                    <ChevronRight className="h-2.5 w-2.5 shrink-0 text-gold/70" aria-hidden="true" />
                                 </div>
-                            </div>
+                            </button>
                         ))}
                 </div>
-            </CardContent>
+            </div>
 
-            {/* Modal Dialog for Full Investigative Report */}
+            {/* Informe completo. Aqui SI hay papel: un expediente es un
+                documento, se lee de una sentada y no vuelve. El pergamino entra
+                aqui con su tinta umber — la mecanica del sistema, no una
+                excepcion— y el efecto en el mundo vuelve a dorado porque es
+                la unica linea accionable del informe. */}
             <Dialog open={!!selectedNewsDetail} onOpenChange={open => !open && setSelectedNewsDetail(null)}>
-                <DialogContent className="max-w-md md:max-w-lg border-border/80 bg-card text-card-foreground">
+                <DialogContent className="max-w-md md:max-w-lg border-2 border-wood bg-card">
                     {selectedNewsDetail && (
                         <>
                             <DialogHeader>
-                                <div className="flex items-center justify-between gap-2 mb-1">
-                                    <span className={`text-xs px-2 py-0.5 rounded border font-medium ${CATEGORY_LABELS[selectedNewsDetail.category].color}`}>
-                                        {CATEGORY_LABELS[selectedNewsDetail.category].label}
-                                    </span>
+                                <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                                    <CategoryChip category={selectedNewsDetail.category} />
                                     {getImpactBadge(selectedNewsDetail.impactLevel)}
                                 </div>
-                                <DialogTitle className="text-lg font-bold font-heading text-zinc-100 leading-snug">
+                                <DialogTitle className="font-heading text-xl leading-tight text-parch-50">
                                     {selectedNewsDetail.headline}
                                 </DialogTitle>
-                                <DialogDescription className="text-xs text-zinc-400 flex items-center gap-2 pt-1">
-                                    <span>{selectedNewsDetail.source}</span>
-                                    <span>•</span>
+                                <DialogDescription className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-1 font-mono text-[11px] text-parch-400">
+                                    <span className="font-sans font-semibold uppercase tracking-[.1em] text-parch-300">{selectedNewsDetail.source}</span>
+                                    <span aria-hidden="true">·</span>
                                     <span>{selectedNewsDetail.district}</span>
                                     {selectedNewsDetail.coordinates && (
                                         <>
-                                            <span>•</span>
-                                            <span className="font-mono text-zinc-300">[{selectedNewsDetail.coordinates}]</span>
+                                            <span aria-hidden="true">·</span>
+                                            <span className="text-gold">[{selectedNewsDetail.coordinates}]</span>
                                         </>
                                     )}
-                                    <span>•</span>
-                                    <span className="font-mono">Publicado hace {selectedNewsDetail.minutesAgo} min</span>
+                                    <span aria-hidden="true">·</span>
+                                    <span>Hace {selectedNewsDetail.minutesAgo} min</span>
                                 </DialogDescription>
                             </DialogHeader>
 
-                            <div className="space-y-3 py-2 text-sm text-zinc-200">
-                                <div className="p-3 rounded-md bg-zinc-950/70 border border-border/50 text-xs italic text-zinc-300 leading-relaxed">
-                                    &ldquo;{selectedNewsDetail.summary}&rdquo;
-                                </div>
+                            <div className="space-y-3 py-1">
+                                <blockquote className="parchment border-l-4 border-l-crimson p-3 text-xs italic leading-relaxed">
+                                    <p className="parchment-ink">&ldquo;{selectedNewsDetail.summary}&rdquo;</p>
+                                </blockquote>
 
-                                <div className="space-y-2 text-xs leading-relaxed text-zinc-300">
-                                    <p className="font-semibold text-zinc-100 uppercase tracking-wider text-[11px]">
-                                        Informe Completo del Teletipo:
-                                    </p>
-                                    <p className="text-justify leading-relaxed">
+                                <div className="space-y-2">
+                                    <p className="eyebrow">Informe del teletipo</p>
+                                    <p className="text-justify text-sm leading-relaxed text-parch-200">
                                         {selectedNewsDetail.fullReport}
                                     </p>
                                 </div>
 
-                                <div className="p-2.5 rounded border border-amber-900/40 bg-amber-950/20 text-xs flex items-start gap-2.5">
-                                    <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                                <div className="flex items-start gap-2.5 rounded border border-gold/40 bg-gold/10 p-2.5 text-xs">
+                                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
                                     <div>
-                                        <p className="font-semibold text-amber-200">Efecto en el Mundo de Juego:</p>
-                                        <p className="text-amber-300/90 text-[11px] mt-0.5">{selectedNewsDetail.gameWorldImpact}</p>
+                                        <p className="font-bold uppercase tracking-[.1em] text-gold-light">Efecto en el mundo de juego</p>
+                                        <p className="mt-0.5 font-mono text-[11px] text-parch-200">{selectedNewsDetail.gameWorldImpact}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex justify-end pt-2 border-t border-border/40">
-                                <Button 
-                                    variant="outline" 
-                                    size="sm" 
+                            <div className="flex justify-end border-t border-wood pt-3">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
                                     onClick={() => setSelectedNewsDetail(null)}
-                                    className="border-white/10 hover:bg-white/5 text-xs"
+                                    className="font-heading text-xs uppercase tracking-wider"
                                 >
-                                    Cerrar Despacho
+                                    Cerrar despacho
                                 </Button>
                             </div>
                         </>
                     )}
                 </DialogContent>
             </Dialog>
-        </Card>
+        </div>
     );
 }

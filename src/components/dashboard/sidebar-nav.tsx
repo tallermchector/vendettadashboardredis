@@ -71,6 +71,11 @@ const tertiaryNav: NavItem[] = [
     { href: "/search", label: "Buscar", icon: <Search /> },
 ]
 
+// El corte entre grupos es un filete de madera cónico, no un separador de UI.
+function GroupRule() {
+  return <div className="rule mx-3 my-2" aria-hidden="true" />
+}
+
 export function SidebarNav({ user }: SidebarNavProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -84,7 +89,7 @@ export function SidebarNav({ user }: SidebarNavProps) {
   }
 
   const renderNav = (items: NavItem[]) => (
-    <SidebarMenu>
+    <SidebarMenu className="gap-0.5">
       {items.map((item) => {
         const params = new URLSearchParams(searchParams);
         if (selectedProperty?.id) {
@@ -102,15 +107,20 @@ export function SidebarNav({ user }: SidebarNavProps) {
 
         return (
           <SidebarMenuItem key={item.href}>
+            {/* `as={Link}` en vez de anidar un <Link> dentro: el markup
+                anterior producia <button><a/></button>, que es contenido
+                interactivo anidado y ademas anulaba los selectores
+                `[&>svg]` / `[&>span:last-child]` de la variante. */}
             <SidebarMenuButton
+              as={Link}
+              href={finalHref}
               isActive={pathname.startsWith(item.href)}
               tooltip={item.label}
               onClick={handleClick}
+              className="rounded-md text-parch-400 hover:bg-wood-light/30 hover:text-parch-50 data-[active=true]:bg-crimson/20 data-[active=true]:text-parch-50 data-[active=true]:shadow-[inset_3px_0_0_0_#a02020] data-[active=true]:[&_svg]:text-gold-light [&_svg]:h-[18px] [&_svg]:w-[18px]"
             >
-              <Link href={finalHref}>
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
+              {item.icon}
+              <span>{item.label}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         )
@@ -120,17 +130,20 @@ export function SidebarNav({ user }: SidebarNavProps) {
 
   return (
     <>
-      <SidebarGroup>
+      <SidebarGroup className="p-0 py-3">
         {renderNav(mainNav)}
+        <GroupRule />
       </SidebarGroup>
       
       {user && user.propiedades.length > 0 && <PropertySelector properties={user.propiedades} />}
 
-      <SidebarGroup>
+      <SidebarGroup className="p-0">
+        <GroupRule />
         {renderNav(secondaryNav)}
+        <GroupRule />
       </SidebarGroup>
       
-      <SidebarGroup>
+      <SidebarGroup className="p-0 pb-4">
         {renderNav(tertiaryNav)}
       </SidebarGroup>
     </>

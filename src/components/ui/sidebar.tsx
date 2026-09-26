@@ -536,7 +536,15 @@ const sidebarMenuButtonVariants = cva(
 
 const SidebarMenuButton = React.forwardRef<
   HTMLButtonElement,
-  React.ComponentProps<"button"> & {
+  React.ComponentProps<"button"> &
+    // `as` permite renderizar un elemento distinto (`as={Link}`) conservando
+    // las clases del boton. Sin este parcial, los atributos propios de ese
+    // elemento —`href`, `target`— no compilan, y la unica salida seria anidar
+    // un <a> dentro de un <button>: contenido interactivo anidado, doble
+    // parada de foco y un anuncio de lector de pantalla que dice "enlace,
+    // boton". Solo se acepta cuando se pasa `as`; el <button> por defecto
+    // sigue rechazando `href`.
+    Partial<React.ComponentProps<"a">> & {
     as?: React.ElementType
     isActive?: boolean
     tooltip?: string | React.ComponentProps<typeof TooltipContent>

@@ -1,85 +1,42 @@
 
-'use client';
+'use client'
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Dumbbell } from "lucide-react";
 import type { FullColaEntrenamiento } from "@/lib/data";
+import { CountdownText, QueueEmpty, QueuePanel, QueueRow, useQueueCountdown } from "./queue-panel";
 
 type TrainingStatusProps = {
     trainings: FullColaEntrenamiento[];
     totalSlots: number;
 };
 
-function formatTime(totalSeconds: number): string {
-    if (totalSeconds < 0) totalSeconds = 0;
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = Math.floor(totalSeconds % 60);
-    return [hours, minutes, seconds]
-        .map(v => v.toString().padStart(2, '0'))
-        .join(':');
-}
-
-function CountdownTimer({ label, endDate, onFinish }: {label: string, endDate: string, onFinish: () => void}) {
-    const [timeLeft, setTimeLeft] = useState('');
-
-    useEffect(() => {
-        const end = new Date(endDate).getTime();
-        const intervalId = setInterval(() => {
-            const now = new Date().getTime();
-            const difference = Math.floor((end - now) / 1000);
-
-            if (difference < -1) {
-                setTimeLeft('00:00:00');
-                clearInterval(intervalId);
-                onFinish();
-            } else {
-                setTimeLeft(formatTime(difference));
-            }
-        }, 1000);
-        
-        const now = new Date().getTime();
-        const difference = Math.floor((end - now) / 1000);
-        setTimeLeft(formatTime(difference > 0 ? difference : 0));
-
-        return () => clearInterval(intervalId);
-    }, [endDate, onFinish]);
+function TrainingCountdown({ item }: { item: FullColaEntrenamiento }) {
+    const router = useRouter();
+    const timeLeft = useQueueCountdown(item.fechaFinalizacion, () => router.refresh());
 
     return (
-        <div className="flex justify-between items-center text-sm">
-            <span>{label}</span>
-            <span className="font-mono text-accent">{timeLeft}</span>
-        </div>
-    );
+        <QueueRow
+            tone="border-l-blue-600 text-blue-600"
+            icon={<Dumbbell className="h-4 w-4" />}
+            label={`${item.entrenamiento.nombre} · Nvl ${item.nivelDestino}`}
+            sub={item.propiedad.nombre}
+            tag="Entrenamiento"
+            timer={<CountdownText time={timeLeft} />}
+        />
+    )
 }
 
 export function TrainingStatus({ trainings, totalSlots }: TrainingStatusProps) {
-    const router = useRouter();
-
-    const handleRefresh = () => {
-        router.refresh();
-    };
-
     return (
-        <div className="space-y-1">
-            <div className="bg-primary text-primary-foreground px-4 py-1.5 rounded-t-md flex justify-between items-center font-bold mt-2">
-                <span>ENTRENAMIENTO</span>
-                <span>({trainings.length}/{totalSlots})</span>
-            </div>
-            <div className="bg-card text-card-foreground px-4 py-3 rounded-b-md space-y-2">
-                {trainings.length > 0 ? (
-                     trainings.map(queueItem => (
-                        <CountdownTimer 
-                            key={queueItem.id}
-                            label={`${queueItem.propiedad.nombre}: ${queueItem.entrenamiento.nombre} (Nvl ${queueItem.nivelDestino})`}
-                            endDate={new Date(queueItem.fechaFinalizacion).toISOString()}
-                            onFinish={handleRefresh}
-                         />
-                    ))
-                ) : (
-                    <p className="text-muted-foreground text-center text-sm">-</p>
-                )}
-            </div>
-        </div>
-    );
+        <QueuePanel title="Entrenamiento" slots={`${trainings.length}/${totalSlots}`}>
+            {trainings.length > 0 ? (
+                trainings.map(item => (
+                    <TrainingCountdown key={item.id} item={item} />
+                ))
+            ) : (
+                <QueueEmpty>Nadie en el campo de tiro.</QueueEmpty>
+            )}
+        </QueuePanel>
+    )
 }

@@ -1,9 +1,10 @@
 
-'use client';
+'use client'
 
 import type { ColaConstruccion } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Hammer } from "lucide-react";
+import { CountdownText, QueueEmpty, QueuePanel, QueueRow, useQueueCountdown } from "./queue-panel";
 
 type ConstructionStatusProps = {
     constructions: (ColaConstruccion & { propiedadNombre: string })[];
@@ -11,80 +12,52 @@ type ConstructionStatusProps = {
     allRooms: { id: string; nombre: string; }[];
 };
 
-function formatTime(totalSeconds: number): string {
-    if (totalSeconds < 0) totalSeconds = 0;
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = Math.floor(totalSeconds % 60);
-    return [hours, minutes, seconds]
-        .map(v => v.toString().padStart(2, '0'))
-        .join(':');
-}
-
-function CountdownTimer({ label, endDate, onFinish }: {label: string, endDate: string, onFinish: () => void}) {
-    const [timeLeft, setTimeLeft] = useState('');
-
-    useEffect(() => {
-        const end = new Date(endDate).getTime();
-        const intervalId = setInterval(() => {
-            const now = new Date().getTime();
-            const difference = Math.floor((end - now) / 1000);
-
-            if (difference < -1) { // 1 second grace period
-                setTimeLeft('00:00:00');
-                clearInterval(intervalId);
-                onFinish();
-            } else {
-                setTimeLeft(formatTime(difference));
-            }
-        }, 1000);
-        
-        const now = new Date().getTime();
-        const difference = Math.floor((end - now) / 1000);
-        setTimeLeft(formatTime(difference > 0 ? difference : 0));
-
-        return () => clearInterval(intervalId);
-    }, [endDate, onFinish]);
+/** Un item sin habitacion resuelta o sin fecha no se puede mostrar: se omite. */
+function ConstructionCountdown({ item, roomName, endDate }: {
+    item: ColaConstruccion & { propiedadNombre: string },
+    roomName: string,
+    endDate: Date,
+}) {
+    const router = useRouter();
+    // `router.refresh` es estable, asi que el intervalo del hook no se recrea
+    // en cada tick. Ver la nota de useQueueCountdown.
+    const timeLeft = useQueueCountdown(endDate, () => router.refresh());
 
     return (
-        <div className="flex justify-between items-center text-sm">
-            <span>{label}</span>
-            <span className="font-mono text-accent">{timeLeft}</span>
-        </div>
-    );
+        <QueueRow
+            tone="border-l-amber-600 text-amber-600"
+            icon={<Hammer className="h-4 w-4" />}
+            label={`${roomName} · Nvl ${item.nivelDestino}`}
+            sub={item.propiedadNombre}
+            tag="Obra"
+            timer={<CountdownText time={timeLeft} />}
+        />
+    )
 }
 
 export function ConstructionStatus({ constructions, totalSlots, allRooms }: ConstructionStatusProps) {
-    const router = useRouter();
-
-    const handleRefresh = () => {
-        router.refresh();
-    };
+    // Las habitaciones se resuelven una vez por render en vez de un `find` por
+    // fila: la lista es corta pero `allRooms` no lo es, y `find` es O(n·m).
+    const roomsById = new Map(allRooms.map(r => [r.id, r.nombre]));
 
     return (
-        <div className="space-y-1">
-            <div className="bg-primary text-primary-foreground px-4 py-1.5 rounded-t-md flex justify-between items-center font-bold mt-2">
-                <span>HABITACIONES EN CONSTRUCCIÓN</span>
-                <span>({constructions.length}/{totalSlots})</span>
-            </div>
-            <div className="bg-card text-card-foreground px-4 py-3 rounded-b-md space-y-2">
-                {constructions.length > 0 ? (
-                    constructions.map(queueItem => {
-                        const room = allRooms.find(r => r.id === queueItem.habitacionId);
-                        if (!room || !queueItem.fechaFinalizacion) return null;
-                        return (
-                             <CountdownTimer 
-                                key={queueItem.id}
-                                label={`${queueItem.propiedadNombre}: ${room.nombre} (Nvl ${queueItem.nivelDestino})`}
-                                endDate={new Date(queueItem.fechaFinalizacion).toISOString()}
-                                onFinish={handleRefresh}
-                             />
-                        )
-                    })
-                ) : (
-                    <p className="text-muted-foreground text-center text-sm">No hay construcciones en cola.</p>
-                )}
-            </div>
-        </div>
-    );
+        <QueuePanel title="Obras" slots={`${constructions.length}/${totalSlots}`}>
+            {constructions.length > 0 ? (
+                constructions.map(item => {
+                    const roomName = roomsById.get(item.habitacionId);
+                    if (!roomName || !item.fechaFinalizacion) return null;
+                    return (
+                        <ConstructionCountdown
+                            key={item.id}
+                            item={item}
+                            roomName={roomName}
+                            endDate={new Date(item.fechaFinalizacion)}
+                        />
+                    )
+                })
+            ) : (
+                <QueueEmpty>Ninguna habitacion en obra.</QueueEmpty>
+            )}
+        </QueuePanel>
+    )
 }

@@ -13,24 +13,26 @@ type QueueCardProps = {
 };
 
 export function QueueStatusCard({ user, allRooms }: QueueCardProps) {
-    
+
     // Filtra para obtener solo las construcciones que están activamente en cuenta regresiva.
     const activeConstructions = user.propiedades
-        .flatMap(p => 
+        .flatMap(p =>
             p.colaConstruccion.map(c => ({ ...c, propiedadNombre: p.nombre }))
         )
         .filter(c => c.fechaFinalizacion && new Date(c.fechaFinalizacion) > new Date());
-    
-    // Cuenta el total de items en todas las colas de construcción para el slot.
-    const totalConstructionQueueItems = user.propiedades.reduce((acc, p) => acc + p.colaConstruccion.length, 0);
-
 
     const activeRecruitments = user.propiedades
         .filter(p => p.colaReclutamiento)
         .map(p => ({ ...p.colaReclutamiento!, propiedadNombre: p.nombre }));
 
     return (
-        <div className="space-y-1">
+        // Las cuatro colas comparten la retícula de dos columnas desde `md`.
+        // Antes era una sola columna de ancho completo: cuatro paneles
+        // apilados de 1280px, cada uno con una sola etiqueta de texto y una
+        // cuenta regresiva, separados por metros de pergamino vacio. En dos
+        // columnas la hoja tiene ancho util para su contenido y dos colas
+        // quedan visibles a la vez.
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <MissionStatus missions={user.misiones} />
             <ConstructionStatus constructions={activeConstructions} totalSlots={user.propiedades.length * 5} allRooms={allRooms} />
             <RecruitmentStatus recruitments={activeRecruitments} totalSlots={user.propiedades.length} />

@@ -2,33 +2,33 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { 
-    Building2, 
-    Users, 
-    Swords, 
-    FlaskConical, 
-    ShieldAlert, 
-    History, 
-    Clock, 
-    CheckCircle2, 
-    Compass, 
-    ExternalLink, 
-    Calendar, 
-    MapPin, 
+import type { LucideIcon } from 'lucide-react';
+import {
+    Building2,
+    Users,
+    Swords,
+    FlaskConical,
+    ShieldAlert,
+    History,
+    Clock,
+    CheckCircle2,
+    Compass,
+    ExternalLink,
+    Calendar,
+    MapPin,
     ArrowUpRight,
     ChevronDown,
-    ChevronUp
+    ChevronUp,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-    Dialog, 
-    DialogContent, 
-    DialogHeader, 
-    DialogTitle, 
-    DialogDescription 
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
 } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 import type { ActivityItem, ActivityType, ActivityStatus } from '@/lib/data';
 
 interface ActivityHistoryProps {
@@ -54,419 +54,342 @@ function formatRelativeTime(dateInput: Date | string): string {
 
 function formatExactDateTime(dateInput: Date | string): string {
     const date = new Date(dateInput);
-    return date.toLocaleDateString('es-ES', { 
-        day: '2-digit', 
-        month: 'long', 
+    return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'long',
         year: 'numeric',
-        hour: '2-digit', 
-        minute: '2-digit' 
+        hour: '2-digit',
+        minute: '2-digit'
     });
 }
 
-function getActivityConfig(type: ActivityType) {
-    switch (type) {
-        case 'CONSTRUCCION':
-            return {
-                label: 'Construcción',
-                icon: Building2,
-                colorClass: 'text-amber-400 bg-amber-950/40 border-amber-800/50',
-                badgeClass: 'text-amber-300 border-amber-800/60 bg-amber-950/50',
-                route: '/rooms',
-                routeLabel: 'Ir a Habitaciones'
-            };
-        case 'RECLUTAMIENTO':
-            return {
-                label: 'Reclutamiento',
-                icon: Users,
-                colorClass: 'text-emerald-400 bg-emerald-950/40 border-emerald-800/50',
-                badgeClass: 'text-emerald-300 border-emerald-800/60 bg-emerald-950/50',
-                route: '/recruitment',
-                routeLabel: 'Ir a Reclutamiento'
-            };
-        case 'ATAQUE':
-            return {
-                label: 'Ataques y Misiones',
-                icon: Swords,
-                colorClass: 'text-red-400 bg-red-950/40 border-red-800/50',
-                badgeClass: 'text-red-300 border-red-800/60 bg-red-950/50',
-                route: '/missions',
-                routeLabel: 'Ir a Misiones'
-            };
-        case 'ENTRENAMIENTO':
-            return {
-                label: 'Investigación',
-                icon: FlaskConical,
-                colorClass: 'text-sky-400 bg-sky-950/40 border-sky-800/50',
-                badgeClass: 'text-sky-300 border-sky-800/60 bg-sky-950/50',
-                route: '/training',
-                routeLabel: 'Ir a Entrenamiento'
-            };
-        case 'SISTEMA':
-        default:
-            return {
-                label: 'Sistema',
-                icon: ShieldAlert,
-                colorClass: 'text-purple-400 bg-purple-950/40 border-purple-800/50',
-                badgeClass: 'text-purple-300 border-purple-800/60 bg-purple-950/50',
-                route: '/messages',
-                routeLabel: 'Ir a Mensajes'
-            };
-    }
+/**
+ * Color por tipo de orden. Deliberadamente el MISMO color que usa la barra de
+ * 3px de las colas de arriba: ambar = obra, esmeralda = reclutamiento, azul =
+ * entrenamiento, carmin = guerra. Es el unico modo de que la vista general
+ * funcione como un indice — se lee el color de un vistazo y se sabe de que
+ * modulo hay que ir.
+ *
+ * `bar` e `ink` van separados porque aqui aterrizan en elementos distintos: la
+ * barra en la fila, el color en el icono. En `QueueRow` viven juntos porque
+ * alli comparten nodo. Unirlos aqui dejaria la barra sin pintar — un
+ * `border-l-*` sobre un `<span>` que no la declara no hace nada.
+ *
+ * Nota de tinta: sobre pergamino los iconos van en tonos profundos, no en los
+ * `-500`/-`400` de pantalla. Un ambar claro sobre papel no tiene contraste.
+ *
+ * SISTEMA baja a madera. El morado del original no existe en el sistema de
+ * diseno, y un aviso del sistema no es una accion del jugador: no debe
+ * competir en saturacion con una orden de guerra.
+ */
+const ACTIVITY_TONES: Record<ActivityType, {
+    label: string;
+    icon: LucideIcon;
+    /** Color de la barra de 3px de la fila. */
+    bar: string;
+    /** Color del icono. */
+    ink: string;
+    route: string;
+    routeLabel: string;
+}> = {
+    CONSTRUCCION:  { label: 'Construcción',    icon: Building2,    bar: 'border-l-amber-600',   ink: 'text-amber-700',       route: '/rooms',      routeLabel: 'Ir a habitaciones' },
+    RECLUTAMIENTO: { label: 'Reclutamiento',   icon: Users,        bar: 'border-l-emerald-700', ink: 'text-emerald-800',    route: '/recruitment', routeLabel: 'Ir a reclutamiento' },
+    ATAQUE:        { label: 'Ataques',         icon: Swords,       bar: 'border-l-crimson',     ink: 'text-crimson-deep',   route: '/missions',   routeLabel: 'Ir a misiones' },
+    ENTRENAMIENTO: { label: 'Investigación',   icon: FlaskConical, bar: 'border-l-blue-700',    ink: 'text-blue-800',       route: '/training',   routeLabel: 'Ir a entrenamiento' },
+    SISTEMA:       { label: 'Sistema',         icon: ShieldAlert,  bar: 'border-l-umber/25',    ink: 'text-umber-lighter',  route: '/messages',   routeLabel: 'Ir a mensajes' },
+};
+
+/** Orden de las pestañas. `TODAS` no es un tipo: es la ausencia de filtro. */
+const TABS = ['TODAS', 'CONSTRUCCION', 'RECLUTAMIENTO', 'ATAQUE', 'ENTRENAMIENTO'] as const;
+type TabKey = typeof TABS[number];
+
+/**
+ * Estado del asiento. Sobre pergamino el color va en tinta, no en luz: un
+ * sello carmin profundo (`crimson-deep`) es un tampón de tinta, no un LED.
+ * COMPLETADO se apaga a umber porque una orden cerrada ya no exige atención.
+ */
+const STATUS_TONES: Record<ActivityStatus, { label: string, icon: LucideIcon, className: string }> = {
+    COMPLETADO: { label: 'Completado', icon: CheckCircle2, className: 'text-umber/70' },
+    EN_CURSO:   { label: 'En curso',   icon: Clock,         className: 'text-gold-deep' },
+    DESPLEGADO: { label: 'Desplegado', icon: Compass,       className: 'text-crimson-deep' },
+};
+
+function StatusStamp({ status }: { status: ActivityStatus }) {
+    const { label, icon: Icon, className } = STATUS_TONES[status];
+    return (
+        <span className={cn('inline-flex shrink-0 items-center gap-1 whitespace-nowrap font-mono text-[10px] font-bold uppercase tracking-[.1em]', className)}>
+            <Icon className="h-3 w-3" aria-hidden="true" />
+            {label}
+        </span>
+    );
 }
 
-function renderStatusBadge(status: ActivityStatus) {
-    switch (status) {
-        case 'COMPLETADO':
-            return (
-                <Badge variant="outline" className="text-xs text-emerald-400 border-emerald-800/60 bg-emerald-950/40 gap-1 font-medium whitespace-nowrap">
-                    <CheckCircle2 className="h-3 w-3" />
-                    Completado
-                </Badge>
-            );
-        case 'EN_CURSO':
-            return (
-                <Badge variant="outline" className="text-xs text-amber-400 border-amber-800/60 bg-amber-950/40 gap-1 font-medium whitespace-nowrap">
-                    <Clock className="h-3 w-3 animate-pulse" />
-                    En curso
-                </Badge>
-            );
-        case 'DESPLEGADO':
-            return (
-                <Badge variant="outline" className="text-xs text-red-400 border-red-800/60 bg-red-950/40 gap-1 font-medium whitespace-nowrap">
-                    <Compass className="h-3 w-3 animate-spin" />
-                    Desplegado
-                </Badge>
-            );
-    }
+/** Pestaña de filtro. Una sola implementacion para las cinco secciones. */
+function FilterTab({ id, selected, count, icon: Icon, children, onClick }: {
+    id: string;
+    selected: boolean;
+    count: number;
+    icon?: LucideIcon;
+    children: string;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            id={id}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            onClick={onClick}
+            className={cn(
+                'flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded border px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[.1em] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold',
+                selected
+                    ? 'border-gold/60 bg-gold/15 text-gold-light'
+                    : 'border-transparent text-parch-400 hover:bg-ink-1 hover:text-parch-200'
+            )}
+        >
+            {Icon && <Icon className="h-3.5 w-3.5" aria-hidden="true" />}
+            {children}
+            <span className={cn(
+                'rounded px-1 font-mono text-[10px] tabular-nums',
+                selected ? 'bg-gold/25 text-gold-light' : 'bg-ink-1 text-parch-400'
+            )}>
+                {count}
+            </span>
+        </button>
+    );
 }
 
 export function ActivityHistoryCard({ activities }: ActivityHistoryProps) {
-    const [selectedTab, setSelectedTab] = useState<string>('TODAS');
+    const [selectedTab, setSelectedTab] = useState<TabKey>('TODAS');
     const [selectedActivity, setSelectedActivity] = useState<ActivityItem | null>(null);
     const [showAll, setShowAll] = useState<boolean>(false);
 
-    const counts = {
-        TODAS: activities.length,
-        CONSTRUCCION: activities.filter(a => a.type === 'CONSTRUCCION').length,
-        RECLUTAMIENTO: activities.filter(a => a.type === 'RECLUTAMIENTO').length,
-        ATAQUE: activities.filter(a => a.type === 'ATAQUE').length,
-        ENTRENAMIENTO: activities.filter(a => a.type === 'ENTRENAMIENTO').length,
-    };
+    // Una sola pasada en vez de seis `filter` sobre el mismo array (uno por
+    // conteo, otro por el filtro activo).
+    const counts = activities.reduce<Record<string, number>>((acc, a) => {
+        acc.TODAS = (acc.TODAS ?? 0) + 1;
+        acc[a.type] = (acc[a.type] ?? 0) + 1;
+        return acc;
+    }, {});
 
-    const filteredActivities = activities.filter(a => {
-        if (selectedTab === 'TODAS') return true;
-        return a.type === selectedTab;
-    });
+    const filteredActivities = selectedTab === 'TODAS'
+        ? activities
+        : activities.filter(a => a.type === selectedTab);
 
     const displayedActivities = showAll ? filteredActivities : filteredActivities.slice(0, 6);
 
-    const activeConfig = selectedActivity ? getActivityConfig(selectedActivity.type) : null;
+    const activeConfig = selectedActivity ? ACTIVITY_TONES[selectedActivity.type] : null;
 
     return (
-        <Card id="activity-history-card" className="border-border/60 bg-card/60 backdrop-blur-sm shadow-md">
-            <CardHeader className="pb-3 border-b border-border/40">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <div className="flex items-center gap-2.5">
-                        <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500">
+        <div id="activity-history-card" className="dossier anim-view overflow-hidden">
+            <div className="ribbon ribbon-gold" />
+
+            {/* Cabecera del libro mayor */}
+            <div className="flex flex-col gap-2 border-b border-wood p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded border-2 border-wood bg-ink-1 text-gold">
+                        <History className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                        <h3 className="flex items-center gap-2 font-heading text-lg leading-none text-parch-50">
+                            Libro mayor
+                            <span className="rounded border border-wood bg-ink-1 px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums text-parch-300">
+                                {activities.length}
+                            </span>
+                        </h3>
+                        <p className="mt-1 text-[11px] text-parch-400">
+                            Ordenes iniciadas y cerradas por la casa
+                        </p>
+                    </div>
+                </div>
+
+                <Button asChild variant="outline" size="sm" className="h-8 shrink-0 self-start font-heading text-xs uppercase tracking-wider sm:self-auto">
+                    <Link href="/messages?categoria=CONSTRUCCION">
+                        Mensajes
+                        <ExternalLink className="h-3.5 w-3.5" />
+                    </Link>
+                </Button>
+            </div>
+
+            {/* Filtros */}
+            <div className="no-sb flex items-center gap-1 overflow-x-auto border-b border-wood px-3 py-2" role="tablist" aria-label="Filtrar el libro mayor">
+                {TABS.map(tab => (
+                    <FilterTab
+                        key={tab}
+                        id={`tab-${tab.toLowerCase()}`}
+                        selected={selectedTab === tab}
+                        count={counts[tab] ?? 0}
+                        icon={tab === 'TODAS' ? undefined : ACTIVITY_TONES[tab].icon}
+                        onClick={() => { setSelectedTab(tab); setShowAll(false); }}
+                    >
+                        {tab === 'TODAS' ? 'Todas' : ACTIVITY_TONES[tab].label}
+                    </FilterTab>
+                ))}
+            </div>
+
+            {/* ── Hoja del libro mayor ───────────────────────────────────────
+                DESIGN.md "Physical Paperwork": un libro de asientos es papel.
+                No es una excepcion a la regla de las colas, es la misma regla:
+                el pergamino significa "esto es una orden, con su nombre y su
+                sello". Por eso las filas repiten la barra de 3px de QueueRow. */}
+            <div className="p-3">
+                {displayedActivities.length === 0 ? (
+                    <div className="parchment flex flex-col items-center gap-3 px-6 py-10 text-center">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-full border border-umber/30 text-umber/50">
                             <History className="h-5 w-5" />
                         </div>
                         <div>
-                            <div className="flex items-center gap-2">
-                                <CardTitle className="text-lg font-bold tracking-tight">Historial de Actividad</CardTitle>
-                                <Badge variant="secondary" className="text-xs font-mono">
-                                    {activities.length} {activities.length === 1 ? 'registro' : 'registros'}
-                                </Badge>
-                            </div>
-                            <CardDescription className="text-xs text-muted-foreground mt-0.5">
-                                Registro en tiempo real de construcciones, reclutamientos y despliegues militares.
-                            </CardDescription>
-                        </div>
-                    </div>
-
-                    <Button asChild variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground hover:text-foreground self-start sm:self-auto">
-                        <Link href="/messages?categoria=CONSTRUCCION">
-                            Centro de Mensajes
-                            <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
-                        </Link>
-                    </Button>
-                </div>
-
-                {/* Filter Tabs */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pt-3 pb-1 text-xs">
-                    <button
-                        id="tab-todas"
-                        type="button"
-                        onClick={() => setSelectedTab('TODAS')}
-                        className={`px-3 py-1.5 rounded-md font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-                            selectedTab === 'TODAS'
-                                ? 'bg-primary text-primary-foreground shadow-sm'
-                                : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
-                        }`}
-                    >
-                        Todas
-                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                            selectedTab === 'TODAS' ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-background/80 text-muted-foreground'
-                        }`}>
-                            {counts.TODAS}
-                        </span>
-                    </button>
-
-                    <button
-                        id="tab-construccion"
-                        type="button"
-                        onClick={() => setSelectedTab('CONSTRUCCION')}
-                        className={`px-3 py-1.5 rounded-md font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-                            selectedTab === 'CONSTRUCCION'
-                                ? 'bg-amber-600 text-white shadow-sm'
-                                : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
-                        }`}
-                    >
-                        <Building2 className="h-3.5 w-3.5" />
-                        Construcción
-                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                            selectedTab === 'CONSTRUCCION' ? 'bg-white/20 text-white' : 'bg-background/80 text-muted-foreground'
-                        }`}>
-                            {counts.CONSTRUCCION}
-                        </span>
-                    </button>
-
-                    <button
-                        id="tab-reclutamiento"
-                        type="button"
-                        onClick={() => setSelectedTab('RECLUTAMIENTO')}
-                        className={`px-3 py-1.5 rounded-md font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-                            selectedTab === 'RECLUTAMIENTO'
-                                ? 'bg-emerald-600 text-white shadow-sm'
-                                : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
-                        }`}
-                    >
-                        <Users className="h-3.5 w-3.5" />
-                        Reclutamiento
-                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                            selectedTab === 'RECLUTAMIENTO' ? 'bg-white/20 text-white' : 'bg-background/80 text-muted-foreground'
-                        }`}>
-                            {counts.RECLUTAMIENTO}
-                        </span>
-                    </button>
-
-                    <button
-                        id="tab-ataques"
-                        type="button"
-                        onClick={() => setSelectedTab('ATAQUE')}
-                        className={`px-3 py-1.5 rounded-md font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-                            selectedTab === 'ATAQUE'
-                                ? 'bg-red-600 text-white shadow-sm'
-                                : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
-                        }`}
-                    >
-                        <Swords className="h-3.5 w-3.5" />
-                        Ataques y Misiones
-                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                            selectedTab === 'ATAQUE' ? 'bg-white/20 text-white' : 'bg-background/80 text-muted-foreground'
-                        }`}>
-                            {counts.ATAQUE}
-                        </span>
-                    </button>
-
-                    <button
-                        id="tab-entrenamiento"
-                        type="button"
-                        onClick={() => setSelectedTab('ENTRENAMIENTO')}
-                        className={`px-3 py-1.5 rounded-md font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-                            selectedTab === 'ENTRENAMIENTO'
-                                ? 'bg-sky-600 text-white shadow-sm'
-                                : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
-                        }`}
-                    >
-                        <FlaskConical className="h-3.5 w-3.5" />
-                        Investigación
-                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                            selectedTab === 'ENTRENAMIENTO' ? 'bg-white/20 text-white' : 'bg-background/80 text-muted-foreground'
-                        }`}>
-                            {counts.ENTRENAMIENTO}
-                        </span>
-                    </button>
-                </div>
-            </CardHeader>
-
-            <CardContent className="pt-3">
-                {displayedActivities.length === 0 ? (
-                    <div className="py-10 text-center flex flex-col items-center justify-center space-y-3">
-                        <div className="p-3 rounded-full bg-muted/40 border border-border/40 text-muted-foreground">
-                            <History className="h-6 w-6" />
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-sm font-medium text-foreground">No hay actividades en esta categoría</p>
-                            <p className="text-xs text-muted-foreground max-w-sm">
-                                Las órdenes iniciadas y finalizadas quedarán registradas automáticamente aquí.
+                            <p className="parchment-ink-strong text-sm">El libro esta en blanco</p>
+                            <p className="parchment-ink-muted mt-1 max-w-sm text-xs leading-relaxed">
+                                Las ordenes que inicies y finalices quedan asentadas aqui automaticamente.
                             </p>
                         </div>
-                        <div className="flex gap-2 pt-1">
-                            <Button asChild variant="outline" size="sm" className="h-8 text-xs">
+                        <div className="flex flex-wrap justify-center gap-2 pt-1">
+                            <Button asChild variant="outline" size="sm" className="h-8 font-heading text-xs uppercase tracking-wider">
                                 <Link href="/rooms">Construir</Link>
                             </Button>
-                            <Button asChild variant="outline" size="sm" className="h-8 text-xs">
+                            <Button asChild variant="outline" size="sm" className="h-8 font-heading text-xs uppercase tracking-wider">
                                 <Link href="/recruitment">Reclutar</Link>
                             </Button>
-                            <Button asChild variant="outline" size="sm" className="h-8 text-xs">
-                                <Link href="/map">Explorar Mapa</Link>
+                            <Button asChild variant="outline" size="sm" className="h-8 font-heading text-xs uppercase tracking-wider">
+                                <Link href="/map">Explorar mapa</Link>
                             </Button>
                         </div>
                     </div>
                 ) : (
-                    <div className="space-y-2">
+                    <div className="parchment space-y-2.5 p-3">
                         {displayedActivities.map((activity) => {
-                            const config = getActivityConfig(activity.type);
-                            const IconComponent = config.icon;
+                            const config = ACTIVITY_TONES[activity.type];
+                            const Icon = config.icon;
 
                             return (
-                                <div
+                                <button
+                                    type="button"
                                     id={`activity-item-${activity.id}`}
                                     key={activity.id}
                                     onClick={() => setSelectedActivity(activity)}
-                                    className="group flex items-start justify-between gap-3 p-2.5 rounded-lg border border-border/40 bg-card/40 hover:bg-accent/40 hover:border-border/80 transition-all cursor-pointer"
+                                    className={cn(
+                                        'group flex w-full items-start justify-between gap-3 border-l-[3px] pl-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-crimson',
+                                        config.bar
+                                    )}
                                 >
-                                    <div className="flex items-start gap-3 min-w-0">
-                                        {/* Icon Badge */}
-                                        <div className={`mt-0.5 p-2 rounded-md border shrink-0 ${config.colorClass}`}>
-                                            <IconComponent className="h-4 w-4" />
-                                        </div>
-
-                                        {/* Text Content */}
-                                        <div className="min-w-0 space-y-1">
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <h4 className="text-sm font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors truncate">
-                                                    {activity.title}
-                                                </h4>
-                                                {renderStatusBadge(activity.status)}
+                                    <div className="flex min-w-0 items-start gap-2.5">
+                                        <span className={cn('mt-0.5 shrink-0', config.ink)}>
+                                            <Icon className="h-4 w-4" aria-hidden="true" />
+                                        </span>
+                                        <div className="min-w-0 space-y-0.5">
+                                            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                                                <span className="parchment-ink-strong truncate text-[13px] leading-tight">{activity.title}</span>
+                                                <StatusStamp status={activity.status} />
                                             </div>
-
-                                            <p className="text-xs text-muted-foreground line-clamp-1">
+                                            <p className="parchment-ink-muted line-clamp-1 text-[11px]">
                                                 {activity.description}
                                             </p>
-
-                                            {/* Meta pills */}
                                             {(activity.propertyName || activity.coordinates) && (
-                                                <div className="flex items-center gap-2 pt-0.5 text-[11px] text-muted-foreground/80">
+                                                <div className="flex items-center gap-2 pt-0.5 font-mono text-[10px] text-umber/55">
                                                     {activity.propertyName && (
-                                                        <span className="inline-flex items-center gap-1 font-mono">
-                                                            <MapPin className="h-3 w-3 text-amber-500/80" />
+                                                        <span className="inline-flex items-center gap-1">
+                                                            <MapPin className="h-3 w-3" aria-hidden="true" />
                                                             {activity.propertyName}
                                                         </span>
                                                     )}
-                                                    {activity.coordinates && (
-                                                        <span className="font-mono text-muted-foreground">
-                                                            {activity.coordinates}
-                                                        </span>
-                                                    )}
+                                                    {activity.coordinates && <span>{activity.coordinates}</span>}
                                                 </div>
                                             )}
                                         </div>
                                     </div>
 
-                                    {/* Timestamp & CTA Indicator */}
-                                    <div className="flex flex-col items-end shrink-0 pl-2">
-                                        <span 
-                                            className="text-[11px] font-mono text-muted-foreground whitespace-nowrap"
+                                    <div className="flex shrink-0 flex-col items-end gap-0.5 pl-2">
+                                        <span
+                                            className="whitespace-nowrap font-mono text-[10px] text-umber/55"
                                             title={formatExactDateTime(activity.timestamp)}
                                         >
                                             {formatRelativeTime(activity.timestamp)}
                                         </span>
-                                        <span className="text-[10px] text-primary/70 group-hover:text-primary mt-1 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            Detalles
-                                            <ArrowUpRight className="h-3 w-3" />
-                                        </span>
+                                        <ArrowUpRight
+                                            className="h-3 w-3 text-umber/30 opacity-0 transition-opacity group-hover:opacity-100"
+                                            aria-hidden="true"
+                                        />
+                                        <span className="sr-only">Ver detalle de {activity.title}</span>
                                     </div>
-                                </div>
+                                </button>
                             );
                         })}
 
-                        {/* Expand / Collapse Button */}
                         {filteredActivities.length > 6 && (
-                            <div className="pt-2 text-center">
-                                <Button
-                                    id="btn-toggle-activity-count"
+                            <div className="pt-1 text-center">
+                                <button
                                     type="button"
-                                    variant="ghost"
-                                    size="sm"
                                     onClick={() => setShowAll(!showAll)}
-                                    className="h-8 text-xs text-muted-foreground hover:text-foreground gap-1"
+                                    aria-expanded={showAll}
+                                    className="inline-flex items-center gap-1.5 rounded px-2 py-1 text-[11px] font-bold uppercase tracking-[.1em] text-umber/60 transition-colors hover:bg-umber/10 hover:text-umber focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-umber"
                                 >
-                                    {showAll ? (
-                                        <>
-                                            <ChevronUp className="h-3.5 w-3.5" />
-                                            Mostrar menos
-                                        </>
-                                    ) : (
-                                        <>
-                                            <ChevronDown className="h-3.5 w-3.5" />
-                                            Ver todas las actividades ({filteredActivities.length})
-                                        </>
-                                    )}
-                                </Button>
+                                    {showAll ? <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" /> : <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />}
+                                    {showAll
+                                        ? 'Mostrar menos'
+                                        : `Ver las ${filteredActivities.length} asientos`}
+                                </button>
                             </div>
                         )}
                     </div>
                 )}
-            </CardContent>
+            </div>
 
-            {/* Activity Details Modal */}
+            {/* Ficha del asiento */}
             <Dialog open={!!selectedActivity} onOpenChange={(open) => !open && setSelectedActivity(null)}>
                 {selectedActivity && activeConfig && (
-                    <DialogContent className="sm:max-w-md border-border bg-card">
+                    <DialogContent className="border-2 border-wood bg-card sm:max-w-md">
                         <DialogHeader>
-                            <div className="flex items-center gap-2 mb-1.5">
-                                <div className={`p-1.5 rounded-md border ${activeConfig.colorClass}`}>
+                            <div className="mb-1.5 flex items-center gap-2">
+                                <span className={cn('rounded border border-umber/30 bg-ink-1 p-1.5', activeConfig.ink)}>
                                     <activeConfig.icon className="h-4 w-4" />
-                                </div>
-                                <Badge variant="outline" className={`text-xs ${activeConfig.badgeClass}`}>
-                                    {activeConfig.label}
-                                </Badge>
-                                {renderStatusBadge(selectedActivity.status)}
+                                </span>
+                                <span className="eyebrow">{activeConfig.label}</span>
+                                <StatusStamp status={selectedActivity.status} />
                             </div>
-                            <DialogTitle className="text-base font-bold text-foreground">
+                            <DialogTitle className="font-heading text-xl leading-tight text-parch-50">
                                 {selectedActivity.title}
                             </DialogTitle>
-                            <DialogDescription className="text-xs text-muted-foreground flex items-center gap-1.5 pt-1">
-                                <Calendar className="h-3.5 w-3.5" />
+                            <DialogDescription className="flex items-center gap-1.5 pt-1 font-mono text-[11px] text-parch-400">
+                                <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
                                 {formatExactDateTime(selectedActivity.timestamp)}
                             </DialogDescription>
                         </DialogHeader>
 
-                        <div className="space-y-4 py-2 text-sm">
-                            <div className="rounded-lg bg-muted/30 border border-border/50 p-3 text-xs leading-relaxed text-muted-foreground">
-                                {selectedActivity.description}
+                        <div className="space-y-3 py-1">
+                            <div className="parchment p-3 text-xs leading-relaxed">
+                                <p className="parchment-ink">{selectedActivity.description}</p>
                             </div>
 
                             {(selectedActivity.propertyName || selectedActivity.coordinates) && (
-                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                <div className="grid grid-cols-2 gap-2">
                                     {selectedActivity.propertyName && (
-                                        <div className="p-2.5 rounded-md bg-muted/20 border border-border/40">
-                                            <span className="text-[11px] text-muted-foreground block">Propiedad</span>
-                                            <span className="font-semibold text-foreground">{selectedActivity.propertyName}</span>
+                                        <div className="rounded border border-wood bg-ink-1 p-2.5">
+                                            <span className="eyebrow block">Propiedad</span>
+                                            <span className="mt-0.5 block text-sm text-parch-100">{selectedActivity.propertyName}</span>
                                         </div>
                                     )}
                                     {selectedActivity.coordinates && (
-                                        <div className="p-2.5 rounded-md bg-muted/20 border border-border/40">
-                                            <span className="text-[11px] text-muted-foreground block">Coordenadas</span>
-                                            <span className="font-mono font-semibold text-foreground">{selectedActivity.coordinates}</span>
+                                        <div className="rounded border border-wood bg-ink-1 p-2.5">
+                                            <span className="eyebrow block">Coordenadas</span>
+                                            <span className="mt-0.5 block font-mono text-sm text-gold">{selectedActivity.coordinates}</span>
                                         </div>
                                     )}
                                 </div>
                             )}
 
-                            <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                            <div className="flex items-center justify-between gap-2 border-t border-wood pt-3">
                                 <Button
                                     type="button"
                                     variant="outline"
                                     size="sm"
                                     onClick={() => setSelectedActivity(null)}
-                                    className="h-8 text-xs"
+                                    className="h-8 font-heading text-xs uppercase tracking-wider"
                                 >
                                     Cerrar
                                 </Button>
 
-                                <Button asChild size="sm" className="h-8 text-xs gap-1">
+                                <Button asChild size="sm" className="h-8 gap-1 font-heading text-xs uppercase tracking-wider">
                                     <Link href={activeConfig.route}>
                                         {activeConfig.routeLabel}
                                         <ArrowUpRight className="h-3.5 w-3.5" />
@@ -477,6 +400,6 @@ export function ActivityHistoryCard({ activities }: ActivityHistoryProps) {
                     </DialogContent>
                 )}
             </Dialog>
-        </Card>
+        </div>
     );
 }

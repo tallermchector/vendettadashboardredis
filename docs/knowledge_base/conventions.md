@@ -84,9 +84,25 @@ Antes de dar por terminada una tarea:
 
 ```bash
 pnpm typecheck
+pnpm purgecheck
 pnpm lint
 ```
 
 `next.config.ts` tiene `typescript.ignoreBuildErrors: true`, así que **`pnpm build` no te
 protege de errores de tipos**. Son tu responsabilidad. La clave `eslint.ignoreDuringBuilds`
 ya se eliminó por estar obsoleta en Next 16; no la reintroduzcas.
+
+### Clases purgadas: `pnpm purgecheck`
+
+Tailwind purga en silencio todo `className` ausente de los globs de `content`. Un typo **no**
+da error de build: da un elemento sin estilo, y ni `tsc` ni ESLint lo ven. `pnpm purgecheck`
+(`scripts/purgecheck.cjs`) es el único gate que lo cubre.
+
+Por defecto revisa solo los archivos de código modificados contra HEAD; correrlo sobre todo
+`src` daría falsos positivos con las clases que el código arma por template literal. Acepta
+rutas explícitas.
+
+Dos trampas al escribir clases:
+
+- **Opacidad:** los pasos son de 5 en 5 (`/10`, `/15`, `/20`). `bg-umber/12` se purga.
+- **Prefijos de variantes mal cerrados:** `hover:` y `md:` generan CSS nuevo, no reutilizado.

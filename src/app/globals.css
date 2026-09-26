@@ -2,58 +2,85 @@
    compilado. Debe ser base -> components -> utilities.
    Si `utilities` se declara antes que `components`, las utilidades se emiten
    primero y cualquier clase de `@layer components` (por ejemplo `.main-view`,
-   que hace `@apply flex ... space-y-4 ...`) gana el cascade: `hidden`,
-   `flex-row` o `space-y-6` quedan sin efecto sobre ella. NO reordenar. */
+   que hace `@apply flex ... space-y-4 ...`, o `.dossier`, que hace
+   `@apply border-2 border-wood ...`) gana el cascade: `hidden`, `flex-row` o
+   `space-y-6` quedan sin efecto sobre ella. NO reordenar.
+
+   Consecuencia util de este orden: una clase de `components` y una utilidad
+   tienen la MISMA especificidad (0,1,0), asi que al emitirse `utilities`
+   despues, la utilidad gana. Un `className="dossier border-amber-500"`
+   reescribe el borde de `.dossier` sin necesidad de `!important`. */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 240 5% 5%;
-    --foreground: 210 40% 98%;
- 
-    --card: 240 4% 10%;
-    --card-foreground: 210 40% 98%;
- 
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 210 40% 98%;
- 
-    --primary: 0 75% 50%;
-    --primary-foreground: 0 0% 100%;
- 
-    --secondary: 240 4% 10%;
-    --secondary-foreground: 210 40% 98%;
- 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 215 20.2% 65.1%;
- 
-    --accent: 45 90% 50%;
-    --accent-foreground: 240 5.9% 10%;
- 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    /* ─────────────────────────────────────────────────────────────────────────
+       SISTEMA "VENDETTA SETIEMBRE" — .stitch/DESIGN.md
+       Mesa de caoba carbonizada bajo una lampara de banquero. Negro calido,
+       nunca negro digital. Los HSL de abajo son el unico puente entre el
+       sistema de diseno y las primitivas shadcn: cambiar un par aqui recolorea
+       Button, Card, Badge, Dialog, Table, Toast... en toda la app.
+       Referencia hex en el comentario de cada token.
+       ───────────────────────────────────────────────────────────────────────── */
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 0 75% 50%;
- 
+    /* Superficies de tinta y madera carbonizada */
+    --background: 30 25% 3%;            /* ink-base        #0a0806 */
+    --foreground: 42 45% 94%;           /* parch-bright    #f7f3ea */
+
+    --card: 25 24% 10%;                 /* ink-surface-2   #1f1813 */
+    --card-foreground: 42 45% 94%;      /* parch-bright    #f7f3ea */
+
+    --popover: 26 24% 13%;              /* ink-surface-3   #2a211a */
+    --popover-foreground: 42 45% 94%;   /* parch-bright    #f7f3ea */
+
+    /* Carmin: el motor tactico. Todo lo hostil, urgente o destructivo. */
+    --primary: 0 67% 38%;               /* crimson         #a02020 */
+    --primary-foreground: 42 45% 94%;   /* parch-bright    #f7f3ea */
+
+    /* Madera profunda + texto dorado: el chip de coordenadas [X:Y:Z] */
+    --secondary: 30 29% 5.5%;           /* ink-surface-1   #120e0a */
+    --secondary-foreground: 45 71% 62%; /* gold-light      #e3c05a */
+
+    --muted: 26 24% 13%;                /* ink-surface-3   #2a211a */
+    --muted-foreground: 36 25% 67%;     /* parch-dim       #bfae94 */
+
+    /* Laton: la autoridad. Rango de familia, tesoro, foco. */
+    --accent: 46 68% 47%;               /* gold            #c9a227 */
+    --accent-foreground: 30 25% 3%;     /* ink-base        #0a0806 */
+
+    --destructive: 0 60% 50%;           /* crimson-light   #cc3333 */
+    --destructive-foreground: 42 45% 94%; /* parch-bright  #f7f3ea */
+
+    --border: 27 23% 18%;               /* wood-border     #3a2e24 */
+    --input: 27 23% 18%;                /* wood-border     #3a2e24 */
+    --ring: 46 68% 47%;                 /* gold            #c9a227 */
+
+    /* DESIGN.md "Shapes": roundedness 1. 0.5rem = lg, y las variantes md/sm
+       del tailwind.config salen de este valor (calc(--radius) - 2px/-4px),
+       dando exactamente 0.375rem y 0.25rem como pide el sistema. */
     --radius: 0.5rem;
 
-    --sidebar-background: 240 5% 5%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 0 75% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 0 75% 50%;
+    /* Espina de navegacion persistente: madera con veta, jambas de madera. */
+    --sidebar-background: 30 29% 5.5%;    /* ink-surface-1   #120e0a */
+    --sidebar-foreground: 38 30% 76%;     /* parch-muted     #d5c8b1 */
+    --sidebar-primary: 0 67% 38%;         /* crimson         #a02020 */
+    --sidebar-primary-foreground: 42 45% 94%;
+    --sidebar-accent: 28 23% 24%;         /* wood-highlight  #4a3b2e */
+    --sidebar-accent-foreground: 42 45% 94%;
+    --sidebar-border: 27 23% 18%;         /* wood-border     #3a2e24 */
+    --sidebar-ring: 46 68% 47%;           /* gold            #c9a227 */
 
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    /* Paleta de datos. El diseno no define series, asi que se toma del mundo
+       del juego y de las series semanticas que ya usa el historial de
+       actividad: oro = territorio, carmin =|Referencia, pergamino = neutro,
+       esmeralda = reclutamiento, cielo = entrenamiento. */
+    --chart-1: 46 68% 47%;             /* gold            #c9a227 */
+    --chart-2: 0 60% 50%;              /* crimson-light   #cc3333 */
+    --chart-3: 38 30% 76%;             /* parch-muted     #d5c8b1 */
+    --chart-4: 150 55% 45%;            /* esmeralda (reclutamiento) */
+    --chart-5: 199 75% 55%;            /* cielo (entrenamiento) */
 
     /* Indica al navegador el esquema de color para que los controles nativos
        (inputs, scrollbars, popup del date picker) se pinten oscuros sin
@@ -61,60 +88,60 @@
     color-scheme: dark;
   }
 
-  /* Light theme remains unchanged as per PRD (dark theme first) */
+  /* Modo lectura en pergamino. El sistema no define un tema claro generico:
+     su unica superficie luminosa es el papel. `.light` invierte el mecanismo
+    skeuomorfico completo — fondo de pergamino, tinta umber, y el carmin y el
+     oro pasan a los tonos profundos para mantener el contraste sobre claro. */
   .light {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 38 39% 89%;           /* parch-paper     #eee6d8 */
+    --foreground: 29 30% 18%;           /* umber-text      #3b2d20 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
- 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
- 
-    --primary: 0 75% 50%;
-    --primary-foreground: 355.7 100% 97.3%;
- 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
- 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
- 
-    --accent: 45 90% 50%;
-    --accent-foreground: 222.2 47.4% 11.2%;
- 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --card: 41 27% 94%;                 /* parch-bright    #f7f3ea */
+    --card-foreground: 29 30% 18%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 0 75% 50%;
+    --popover: 36 25% 84%;
+    --popover-foreground: 29 30% 18%;
 
-    /* El tema claro debe redefinir TODAS las variables que consume
-       tailwind.config.ts. Antes faltaban --radius, --sidebar-* y --chart-*,
-       por lo que esos tokens seguian resolviendo al valor oscuro de :root. */
+    --primary: 0 64% 18%;               /* crimson-deep    #4a1010 */
+    --primary-foreground: 42 45% 94%;
+
+    --secondary: 36 25% 80%;
+    --secondary-foreground: 44 74% 24%; /* gold-deep       #6b5210 */
+
+    --muted: 36 25% 82%;
+    --muted-foreground: 28 27% 28%;     /* umber-light     #5a4634 */
+
+    --accent: 45 69% 36%;               /* gold-dim        #9a7a1c */
+    --accent-foreground: 42 45% 94%;
+
+    --destructive: 0 67% 38%;
+    --destructive-foreground: 42 45% 94%;
+
+    --border: 36 25% 72%;
+    --input: 36 25% 72%;
+    --ring: 45 69% 36%;
+
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 222.2 84% 4.9%;
-    --sidebar-primary: 0 75% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 96.1%;
-    --sidebar-accent-foreground: 222.2 47.4% 11.2%;
-    --sidebar-border: 214.3 31.8% 91.4%;
-    --sidebar-ring: 0 75% 50%;
+    --sidebar-background: 36 25% 86%;
+    --sidebar-foreground: 29 30% 18%;
+    --sidebar-primary: 0 64% 18%;
+    --sidebar-primary-foreground: 42 45% 94%;
+    --sidebar-accent: 36 25% 78%;
+    --sidebar-accent-foreground: 29 30% 18%;
+    --sidebar-border: 36 25% 72%;
+    --sidebar-ring: 45 69% 36%;
 
-    --chart-1: 220 70% 45%;
-    --chart-2: 160 60% 38%;
-    --chart-3: 30 80% 48%;
-    --chart-4: 280 65% 52%;
-    --chart-5: 340 75% 50%;
+    --chart-1: 45 69% 36%;
+    --chart-2: 0 64% 18%;
+    --chart-3: 29 30% 18%;
+    --chart-4: 150 45% 32%;
+    --chart-5: 199 60% 40%;
 
     color-scheme: light;
   }
 }
- 
+
 @layer base {
   * {
     @apply border-border;
@@ -128,7 +155,7 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Custom Scrollbar */
+  /* Custom Scrollbar — el pulgar es madera, el canal es tinta. */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -137,22 +164,31 @@
     background: hsl(var(--background));
   }
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted));
-    border-radius: 10px;
+    background: #4a3b2e;
+    border: 2px solid hsl(var(--background));
+    border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--secondary-foreground));
+    background: #6b5744;
   }
 
   h1, h2, h3, h4 {
     @apply font-heading;
   }
 
+  /* Titulares de dossier: condensados, en caja alta, con tracking positivo.
+     DESIGN.md pide 0.03em-0.05em. `uppercase` es explicito porque
+     `font-heading` no lo implica. */
+  h1, h2, h3, h4 {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
   /* Remove arrows from number inputs */
-  input[type=number]::-webkit-inner-spin-button, 
-  input[type=number]::-webkit-outer-spin-button { 
-    -webkit-appearance: none; 
-    margin: 0; 
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
   input[type=number] {
     -moz-appearance: textfield;
@@ -160,12 +196,131 @@
 }
 
 @layer components {
+  /* ═══════════════════════════════════════════════════════════════════════
+     PRIMITIVAS DEL SISTEMA — .stitch/DESIGN.md
+     Superficies, no adornos. Cada clase existe porque el sistema la nombra.
+     ═══════════════════════════════════════════════════════════════════════ */
+
   /* Contenedor raiz de cada vista del dashboard.
      Al vivir en `@layer components` (emitido ANTES que utilities), cualquier
      utilidad de `className` gana el cascade. Ej: `className="main-view
      space-y-6"` produce 1.5rem de gap, no el space-y-4 de aqui. */
   .main-view {
     @apply flex flex-col space-y-4 animate-fade-in;
+  }
+
+  /* ── Modulo dossier estandar ────────────────────────────────────────────
+     Toda tarjeta operativa: madera carbonizada, bisel de 2px, sombra con
+     filete de luz interior que simula el canto de un carton. */
+  .dossier {
+    @apply rounded-lg border-2 border-wood bg-ink-2 shadow-dossier;
+  }
+
+  /* Cinta de acento superior (4px / h-1), pegada al perimetro. El color lo
+     elige el modulo segun su dominio: `.ribbon-crimson` combate, `.ribbon-gold`
+     familia y tesoro, `.ribbon-crimson-gold` mixto. */
+  .ribbon {
+    @apply h-1 w-full shrink-0;
+  }
+  .ribbon-crimson {
+    @apply bg-gradient-to-r from-crimson via-crimson/40 to-transparent;
+  }
+  .ribbon-gold {
+    @apply bg-gradient-to-r from-gold via-gold/30 to-transparent;
+  }
+  .ribbon-crimson-gold {
+    @apply bg-gradient-to-r from-crimson via-gold/50 to-transparent;
+  }
+
+  /* ── Mecanismo skeuomorfico: pergamino ───────────────────────────────────
+     LA FIRMA DEL SISTEMA. Hoja de papel envejecido posada sobre el escritorio
+     oscuro. Todo el texto interno se invierte a umber/crimson-deep: tinta de
+     maquina sobre papel. Usar con contencion — cuatro colas en la vista
+     general, una hoja de detalle en los modales. Nunca de fondo decorativo. */
+  .parchment {
+    background-color: #eee6d8;
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(120, 96, 60, 0.13), transparent 42%),
+      radial-gradient(circle at 88% 8%, rgba(120, 96, 60, 0.10), transparent 38%),
+      radial-gradient(circle at 72% 92%, rgba(120, 96, 60, 0.12), transparent 46%),
+      repeating-linear-gradient(92deg, rgba(59, 45, 32, 0.035) 0 2px, transparent 2px 5px);
+  }
+
+  /* Tinta sobre pergamino. Agrupa las tres acciones tipograficas que el
+     sistema permite dentro de una hoja. */
+  .parchment-ink {
+    @apply text-umber;
+  }
+  .parchment-ink-strong {
+    @apply text-umber font-semibold;
+  }
+  .parchment-ink-muted {
+    @apply text-umber/65;
+  }
+  .parchment-ink-accent {
+    @apply text-crimson;
+  }
+
+  /* ── Etiqueta de eyebrow ─────────────────────────────────────────────────
+     El marcador estructural que separa un dominio del siguiente. */
+  .eyebrow {
+    @apply text-[10px] font-bold uppercase leading-none tracking-[.15em] text-gold/70;
+  }
+
+  /* Filete cónico: se desvanece en ambos extremos, como un corte a cuchillo. */
+  .rule {
+    @apply h-px w-full;
+    background: linear-gradient(90deg, transparent, #3a2e24 18%, #3a2e24 82%, transparent);
+  }
+
+  /* ── Iluminacion ambiental ───────────────────────────────────────────────
+     Profundidad por luz fisica, no por drop shadow abstracto. */
+
+  /* Sello del escritorio: una unica lampara de banquero sobre el escritorio. */
+  .desk-vignette {
+    background-image: radial-gradient(ellipse at 50% 0%, rgba(201, 162, 39, 0.05), transparent 60%);
+  }
+
+  /* Veta de la madera del cajon de la espina lateral. */
+  .woodgrain {
+    background-image:
+      linear-gradient(180deg, rgba(74, 59, 46, 0.16) 0 1px, transparent 1px 7px),
+      radial-gradient(ellipse at 0% 0%, rgba(120, 90, 60, 0.10), transparent 55%);
+  }
+
+  /* Retícula cartografica: el vacio util es un plano de trabajo, no un hueco. */
+  .grid-dots {
+    background-image: radial-gradient(circle, rgba(201, 162, 39, 0.10) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+
+  /* Barra de desplazamiento de madera, sin barra visible (rail de recursos). */
+  .no-sb {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-sb::-webkit-scrollbar {
+    display: none;
+  }
+  .scroll-wood {
+    scrollbar-width: thin;
+    scrollbar-color: #4a3b2e #0a0806;
+  }
+
+  /* Entrada de vista. Un solo gesto orquestado al montar, no un efecto
+     por componente. */
+  @keyframes viewIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .anim-view {
+    animation: viewIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   /* Barrido de carga para Skeleton. Tambien en components (no en base) para
@@ -177,5 +332,18 @@
     content: '';
     @apply absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-background/20 to-transparent;
     animation: shimmer 1.5s infinite;
+  }
+}
+
+/* Fuera de @layer a proposito: una regla sin capa gana el cascade a TODO,
+   incluidas las utilidades. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
