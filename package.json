@@ -17,7 +17,7 @@
     "db:export": "bun prisma/exportacion.ts"
   },
   "dependencies": {
-    "@genkit-ai/googleai": "^1.15.2",
+    "@genkit-ai/google-genai": "^1.42.0",
     "@genkit-ai/next": "^1.15.2",
     "@hookform/resolvers": "^3.10.0",
     "@prisma/adapter-pg": "^7.10.0",
