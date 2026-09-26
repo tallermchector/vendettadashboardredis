@@ -1,0 +1,1 @@
+This repository uses prisma ^7.10.0, and deploys here run on Prisma 8. Upgrade the repository to Prisma 8 first: https://www.prisma.io/docs/v8
