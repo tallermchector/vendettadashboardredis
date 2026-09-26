@@ -62,5 +62,20 @@ Thumbs.db
 *.sqlite3
 *.db
 /src/generated/prisma
+# Salida de `contract emit` de Prisma 8 (ver prisma8.config.ts -> output).
+# Artefactos regenerables: se versionan solo `prisma8/*.prisma`.
+/generated/prisma8
 /vendetta/
 /vendetta
+
+# ----------------------------------------------------
+# Marcadores y archivos generados para IAs
+# ----------------------------------------------------
+# Archivo marcador vacío, sin uso
+.modified
+
+# Los ignore files de IA se GENERAN desde .aiexclude con `pnpm ai:excludes`.
+# No editar a mano. .aiexclude sí se versiona: es la fuente canónica.
+/.claudeignore
+/.cursorignore
+/.geminiignore

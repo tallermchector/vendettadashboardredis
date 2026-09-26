@@ -1,3 +1,21 @@
+# ⚠️ SUPERADO — Spec UI original (pre-implementación)
+
+> **No uses este documento como referencia de diseño.** Describe la intención original del
+> producto; el código actual la implementó de otra forma. Donde discrepan, **manda el código**.
+>
+> Divergencias conocidas frente a lo implementado:
+>
+> | Este spec | Realidad |
+> | :--- | :--- |
+> | Fuente **Inter** | **Bebas Neue** (display) + **Roboto** (cuerpo), vía `next/font` en `src/app/layout.tsx` |
+> | Primario `#8B0000` | `--primary: 0 75% 50%` (carmesí) en `src/app/globals.css` |
+> | "tema oscuro y **arenoso**" | tema oscuro mafioso, sin arenas |
+> | Acento `#BDB76B` | dorado `#eab308` |
+>
+> Tokens vigentes: [../conventions.md](../conventions.md) · Fuente: `src/app/globals.css`.
+
+---
+
 # **App Name**: Vendetta Dashboard
 
 ## Core Features:

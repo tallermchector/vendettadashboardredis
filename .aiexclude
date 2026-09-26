@@ -1,5 +1,16 @@
-# .aiexclude - Filtro de contexto para herramientas y agentes IA
-# Reduce drásticamente el consumo de tokens y omite archivos binarios, volcados pesados y artefactos de compilación.
+# .aiexclude — FUENTE CANÓNICA del filtro de contexto para IA
+#
+# ⚠️  EDITA SOLO ESTE ARCHIVO. Las copias .claudeignore / .cursorignore / .geminiignore
+#     se generan desde aquí con `pnpm ai:excludes` y se sobrescriben.
+#     Verifica que no haya drift con `pnpm ai:excludes:check`.
+#     Las copias se normalizan a LF; el canónico puede estar en CRLF según tu checkout.
+#
+# Reduce drásticamente el consumo de tokens: omite binarios, volcados pesados,
+# artefactos de compilación y librerías de terceros que no son código del proyecto.
+#
+# .gitignore es un archivo DISTINTO y complementario: protege el repositorio, no el
+# contexto. Un artefacto de build no siempre es una exclusión de lectura — p. ej.
+# public/*.svg se sirve en producción pero no se lee como texto.
 
 # ----------------------------------------------------
 # 1. Dependencias y Entornos de Ejecución
@@ -83,7 +94,19 @@ coverage/
 *.cert
 
 # ----------------------------------------------------
-# 7. Control de Versiones y Metadatos de IDE
+# 7. Librerías de Skills de Terceros (NO son código del proyecto)
+# ----------------------------------------------------
+# .agents/, .claude/ y .hermes/ contienen TRES COPIAS IDÉNTICAS de la misma
+# librería de skills: 3 × 444 = 1.332 archivos, ~6,6 MB. Excluidas del contexto
+# sin afectar al proyecto: son herramientas externas del entorno de desarrollo.
+# Se excluye solo skills/ para no tapar un futuro .claude/settings.json del repo.
+.agents/skills/
+.claude/skills/
+.hermes/skills/
+skills-lock.json
+
+# ----------------------------------------------------
+# 8. Control de Versiones y Metadatos de IDE
 # ----------------------------------------------------
 .git/
 .svn/
@@ -94,3 +117,4 @@ coverage/
 !.vscode/extensions.json
 .DS_Store
 Thumbs.db
+.modified

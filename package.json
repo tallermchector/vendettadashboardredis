@@ -14,7 +14,9 @@
     "generate": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma8:migrate": "prisma db migrate --advance-ref db",
-    "db:export": "bun prisma/exportacion.ts"
+    "db:export": "bun prisma/exportacion.ts",
+    "ai:excludes": "node scripts/sync-ai-excludes.mjs",
+    "ai:excludes:check": "node scripts/sync-ai-excludes.mjs --check"
   },
   "dependencies": {
     "@genkit-ai/google-genai": "^1.42.0",

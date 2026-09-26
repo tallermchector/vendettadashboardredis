@@ -477,9 +477,8 @@ export const getGlobalStatistics = cache(async () => {
             prisma.habitacionUsuario.findMany(),
             prisma.entrenamientoUsuario.findMany(),
             prisma.tropaUsuario.findMany({
-                where: {
-                    propiedadId: { not: null }
-                },
+                // Sin `where`: TropaUsuario.propiedadId es obligatorio y la relación
+                // `propiedad` también, así que "excluir null" no puede ocurrir.
                 include: {
                     propiedad: {
                         select: {

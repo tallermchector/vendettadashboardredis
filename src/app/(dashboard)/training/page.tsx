@@ -56,7 +56,8 @@ export default async function TrainingPage() {
       if (!config) return null;
 
       const userTraining = userTrainingsMap.get(id);
-      const nivel = userTraining ? userTraining.nivel : 0;
+      // El Map guarda el nivel directamente (no el objeto), ver userTrainingsMap arriba.
+      const nivel = userTraining ?? 0;
       
       const costosSiguienteNivel = calcularCostosEntrenamiento(nivel + 1, config);
       const tiempoSiguienteNivel = calcularTiempoEntrenamiento(nivel + 1, config, nivelEscuela);

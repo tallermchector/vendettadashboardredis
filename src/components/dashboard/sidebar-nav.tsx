@@ -103,7 +103,6 @@ export function SidebarNav({ user }: SidebarNavProps) {
         return (
           <SidebarMenuItem key={item.href}>
             <SidebarMenuButton
-              asChild
               isActive={pathname.startsWith(item.href)}
               tooltip={item.label}
               onClick={handleClick}
